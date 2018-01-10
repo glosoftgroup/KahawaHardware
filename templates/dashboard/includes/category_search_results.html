@@ -1,0 +1,37 @@
+{% if category_results %} 
+
+
+
+      {% for node in category_results %}
+       
+       <tr>
+       <!-- ## -->
+        <td>{{ node.pk }}</td>
+        <!-- name -->
+        <td>{{ node.name }}</td>
+        <!-- description\ -->
+        <td>{{ node.description|slice:":60" }}...</td>
+        <!-- products count-->
+        <td>
+          <span class="badge bg-indigo">
+            {{ node.get_product_num }}
+          </span>
+        </td>
+        <!-- actions -->
+        <td>
+          <!-- view -->
+          <a href='{% url "dashboard:category-list" root_pk=node.pk %}' class="">
+          <i class="icon-eye"></i>
+        </td>
+       </tr>
+       
+      {% endfor %}
+ 
+  
+{% else %}
+<td colspan="5">
+ <div class="alert-warning" style="padding: 12px"><h5 class="text-center">No result matches your search <i class="icon-heart-broken2"></i></h5></div>
+ </td>
+{% endif %}
+{% load static %}
+ <script type="text/javascript" src="{% static 'backend/js/backend.js' %}"></script>

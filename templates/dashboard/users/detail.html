@@ -1,0 +1,111 @@
+{% extends "dashboard/base.html" %}
+{% load staticfiles %}
+{% load i18n %}
+{% load prices_i18n %}
+
+{% block title %}
+  users
+{% endblock %}
+
+{% block menu_user_class %}active{% endblock %}
+{% block breadcrumbs %}
+     <li><a href="{% url 'dashboard:users' %}">Users</a></li>
+     <li class="active"><a href="{% url 'dashboard:user-detail' pk=user.pk %}">View User</a></li>
+ {% endblock %}
+{% block custom_css %}
+<style type="text/css">
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="animated fadeIn">
+  <div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-flat">
+
+          <div class="panel-body">
+  		    <div class="col-md-6 col-xs-12 left text-center">
+          <div class="col-md-12">
+                      {% if user.image %}
+              <img src=" {{user.image.url}}" alt="Texto Alternativo" class="img-circle img-thumbnail" style="width: 200px;height: 200px;" />
+           {% else %}
+              <img src="{% static 'images/user.png' %}" alt="" class="img-circle img-thumbnail" style="width: 200px;height: 200px;" />
+            {% endif %}
+
+                    <div class="caption text-center">
+            <h3 class="text-semibold no-margin">
+              {{user.name|title }} - ({{user.job_title }})
+            </h3>
+            
+          </div>
+
+          </div>
+             
+          <table class="table datatable-header-footer">
+             <thead><tr><td colspan="2"><h5>Details</h5></td></tr></thead>
+            <tbody>
+              <tr><td>Full Names:</td><td> {{user.fullname }}</td></tr>
+              <tr><td>Email:</td><td> {{user.email }}</td></tr>
+              <tr><td>National ID No:</td><td> {{user.nid }}</td></tr>
+              <tr><td>Mobile No:</td><td> {{user.mobile }}</td></tr>
+              <tr><td>Can Login :</td><td>{% if user.is_active == True %} <span class="text-success"> (granted)<span> {% else %} <span class="text-danger"> (denied)<span> {% endif %}</td></tr>
+              <tr><td>Status :</td><td>{% if user.is_active == True and user.is_staff == True %} 
+                       <span class="text-success"> (active)<span> {% else %} <span class="text-danger"> (inactive)<span> {% endif %}</td>
+              </tr>
+            </tbody>
+
+          </table> 
+         <a href="{% url 'dashboard:user-edit' pk=user.pk %}" class="btn-block btn-info btn-sm"><i class="icon-pencil7" style="font-size: 11px;"></i> edit</a>        
+  		     </div> 
+           <div class="col-md-6 col0xs-12" style="padding-left: 60px;">
+              <div class="col-md-12">
+                <div class="panel border-left-lg border-left-warning invoice-grid timeline-content">
+                  <div class="panel-body">
+                    <div class="row">
+                      <div class="col-sm-12">
+                        <h6 class="text-semibold no-margin-top">Groups</h6>
+                        <ul class="list list-unstyled">
+                        {% if groups %}
+                            {% for group in groups %}
+                              <li>{{ group.name }}</li>
+                            {% endfor %}
+                          {% else %}
+                              <li><span class="text-semibold"> No groups assigned</span></li>
+                        {% endif %}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-md-12">
+                <div class="panel border-left-lg border-left-info invoice-grid timeline-content">
+                  <div class="panel-body">
+                    <div class="row">
+                      <div class="col-sm-12">
+                        <div style="overflow-y: auto; max-height:400px;">
+                          <h6 class="text-semibold no-margin-top">Permissions</h6>
+                          <ul class="list list-unstyled">
+                          {% if all_permissions %}
+                             {% for permission in all_permissions %}
+                             <li>{{ permission.name }}</li>
+                             {% endfor %}
+                          {% else %}
+                              <li><span class="text-semibold"> No permissions assigned</span></li>
+                          {% endif %}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+           </div> 
+     </div>
+    </div>  
+    </div> 
+    </div>
+  </span>
+{% endblock %}

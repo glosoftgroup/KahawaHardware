@@ -1,0 +1,26 @@
+{% load i18n %}
+
+<form action="{% url 'dashboard:product-attribute-delete' pk=attribute.pk %}" method="post" novalidate>
+  {% csrf_token %}
+  <div class="modal-body text-center">
+
+    <h5>
+      {% trans "Are you sure?" context "Dashboard confirmation modal" %}
+    </h5>
+    <p>
+      {% blocktrans trimmed context "Modal delete attribute text" %}
+        You are about to delete an attribute <strong>{{ attribute }}</strong>.
+      {% endblocktrans %}
+    </p>
+  </div>
+  <div class="modal-footer">
+    <div class="col-md-6 col-md-offset-3">
+      <button type="submit" class="btn btn-danger pull-right">
+        {% trans "Delete" context "Dashboard delete action" %}
+      </button>
+      <a href="#!" data-dismiss="modal" class="pull-left btn modal-action modal-close btn-default">
+        {% trans "Cancel" context "Dashboard cancel action" %}
+      </a>
+    </div>
+  </div>
+</form>

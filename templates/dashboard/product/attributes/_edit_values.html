@@ -1,0 +1,89 @@
+<div class="modal-body">
+    <div class="row">
+    <form method="post" enctype="multipart/form-data">    
+         <div class="col-md-12">
+            <div class="form-group">
+             <label>Name</label>
+             {% if product_type %}
+              <input type="text" id="attr_name" class="form-control" disabled="disabled" value="{{product_type}}" name="slug">
+             <input type="hidden" class="product_type" value="{{product_type.pk}}" name="product_type">
+             {% else %}
+              <input type="text" id="attr_name" class="form-control" value="" name="slug">
+             <input type="hidden" class="product_type" value="" name="product_type">
+             {% endif %}
+
+            
+             <span class="help-block">Attribute name e.g Brand</span>
+            </div>
+          </div>
+
+          <div class="col-md-12">
+              <div class="row">
+           {% for attr in attributes %}
+           <div class="col-md-12">
+            <label>Name: {{ attr }}</label><br>
+            </div>
+            <div class="col-md-6">
+             <div class="input-group">
+              <input type="text" placeholder="New value" name="choice" class="form-control" id="choice{{attr.pk}}">
+              <span class="input-group-btn">
+                <button class="btn btn-xs bg-primary legitRipple" type="button" id="cbtn{{attr.pk}}">add</button>
+              </span>
+            </div> 
+            </div>
+
+            <div class="col-md-6 add_value{{attr.pk}}">
+                 <div class="tokenfield form-control">
+                    <input class="form-control token-field" value="California,Washington" placeholder="- Bootstrap Tokenfield" style="position: absolute; left: -10000px;" tabindex="-1" type="text">
+                    <input style="position: absolute; left: -10000px;" tabindex="-1" type="text">
+                  {% for v in attr.values.all %}
+                    <div class="token bg-success">
+                        <span class="token-label" style="max-width: 457px;padding: 8px 20px 8px 16px;">{{ v }}</span>
+                        <!--<a href="#" class="close" tabindex="-1">×</a>-->
+                    </div>
+                  {% endfor %}
+                </div>
+
+               </div>
+               <script type="text/javascript">
+              $('#cbtn{{attr.pk}}').on('click',function(){
+                var value = $('#choice{{attr.pk}}').val();
+                if(!value){ 
+                notify('add a valid attribute name');
+                return false; 
+              }
+              var url ='{% url "dashboard:product-attr-add-value" attr.pk %}';
+              var csrf_token = jQuery("[name=csrfmiddlewaretoken]").val();          
+              var posting = $.post( url, {       
+                value:value,                
+                csrfmiddlewaretoken:csrf_token,
+              });    
+              posting.done(function(data) {       
+                  $('.add_value{{attr.pk}}').empty().append( data );
+                  $('#choice{{attr.pk}}').val('');
+                  //$('#add_value').addClass('hidden');
+                           
+                notify('New category added successfully','bg-success');
+                refreshAttributes()
+                
+              });
+
+              posting.fail(function(){
+                notify('Oops! Try another value.','bg-warning');
+              });
+                
+              });
+            </script>
+           {% endfor %}
+          </div>
+          </div>
+          
+      <!-- action buttons -->
+         <div class="text-right">
+     </div>
+      </form>
+    </div>
+  </div>
+<div class="modal-footer text-center">
+    <button type="button" id='refresh_content' onclick="refreshAttributes()" class="btn btn-block btn-lg btn-default" data-dismiss="modal">Close</button>
+</div>

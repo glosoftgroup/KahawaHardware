@@ -1,0 +1,223 @@
+{% extends "dashboard/base_landing.html" %}
+{% load staticfiles i18n %}
+{% load i18n %}
+{% load prices_i18n %}
+
+{% block title %}
+  Landing page 
+{% endblock %}
+
+{% block custom_css %}
+<style type="text/css">
+  
+
+.panel:hover{ 
+     box-shadow: 1px 8px 20px grey;
+    -webkit-transition:  box-shadow .6s ease-in;
+  }
+  .gpos-text{
+     line-height: 1.2em; font-weight: 500; letter-spacing: 0px;font-size: 34px;     
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="row">
+ <div class="col-md-12">
+  <div class="row">
+      {% if perms.userprofile.view_user or perms.auth.view_group or perms.userprofile.view_usertrail %}
+     <!-- user -->
+     <div class="col-md-3 col-xs-6 hvr-float-shadow">
+      <a href="{% url 'dashboard:index' %}">
+      <div class="thumbnail no-padding">
+            <div class="thumb bg-blue">
+              <img src="{% static 'backend/images/landingpage/dashboard.png' %}" alt="">
+            </div>
+            <div class="caption text-center no-padding">
+              <h6 class="text-semibold no-margin">Dashboard </h6>
+            </div>
+         </div>
+        </a>
+      </div>
+      <!-- ./users -->
+      {% endif %}
+  {% if perms.userprofile.view_user or perms.auth.view_group or perms.userprofile.view_usertrail %}
+ <!-- user -->
+ <div class="col-md-3 col-xs-6 hvr-float-shadow">
+  <a href="{% url 'dashboard:users' %}">
+  <div class="thumbnail no-padding">
+        <div class="thumb bg-blue">
+          <img src="{% static 'backend/images/landingpage/users.png' %}" alt="">       
+        </div>              
+        <div class="caption text-center no-padding">
+          <h6 class="text-semibold no-margin">Users </h6>          
+        </div>
+     </div>
+    </a>
+  </div>
+  <!-- ./users -->
+  {% endif %}
+  {% if perms.product.view_product or perms.product.view_stock or perms.product.view_category or perms.product.view_productclass or perms.product.view_productattribute or perms.product.view_stocklocation %}
+  <!-- Inventory -->
+  <div class="col-md-3 col-xs-6 hvr-float-shadow">
+  <a href="{% url 'dashboard:product-list' %}">
+  <div class="thumbnail no-padding">
+        <div class="thumb bg-blue">
+          <img src="{% static 'backend/images/landingpage/inventory.png' %}" alt="">       
+        </div>              
+        <div class="caption text-center no-padding">
+          <h6 class="text-semibold no-margin">Inventory </h6>          
+        </div>
+     </div>
+  </a>
+  </div>
+  <!-- ./inventory -->
+  {% endif %}
+  {% if perms.customer.view_customer %}
+  <!-- customer management -->
+  <div class="col-md-3 col-xs-6 hvr-float-shadow ">
+  <a href="{% url 'dashboard:customers' %}">
+ <div class="thumbnail no-padding">
+        <div class="thumb bg-blue">
+          <img src="{% static 'backend/images/landingpage/customers.png' %}" alt="">   
+        </div>              
+        <div class="caption text-center no-padding">
+          <h6 class="text-semibold no-margin">Customer </h6>          
+        </div>
+     </div>
+    </a>
+  </div>
+  <!-- ./customer -->
+  {% endif %}
+  {% if perms.supplier.view_supplier %}
+  <!-- supplier management -->
+  <div class="col-md-3 col-xs-6 hvr-float-shadow">
+  <a href="{% url 'dashboard:supplier' %}">
+  <div class="thumbnail no-padding">
+        <div class="thumb bg-blue">
+          <img src="{% static 'backend/images/landingpage/supplier.png' %}" alt="">     
+        </div>              
+        <div class="caption text-center no-padding">
+          <h6 class="text-semibold no-margin">Supplier </h6>          
+        </div>
+     </div>
+    </a>
+  </div>
+  <!-- ./supplier -->
+  {% endif %}
+  {% if perms.supplier.view_supplier %}
+  <!-- supplier management -->
+  <div class="col-md-3 col-xs-6 hvr-float-shadow">
+  <a href="{% url 'dashboard:car-list' %}">
+  <div class="thumbnail no-padding">
+        <div class="thumb bg-blue">
+          <img src="{% static 'backend/images/landingpage/fleet.png' %}" alt="">
+        </div>
+        <div class="caption text-center no-padding">
+          <h6 class="text-semibold no-margin">Fleet Management </h6>
+        </div>
+     </div>
+    </a>
+  </div>
+  <!-- ./supplier -->
+  {% endif %}
+  <!-- communication management -->
+  <div class="col-md-3 col-xs-6 hvr-float-shadow">
+  <a href="{% url 'dashboard:notification_list' %}">
+ <div class="thumbnail no-padding">
+        <div class="thumb bg-blue">
+          <img src="{% static 'backend/images/landingpage/communication.png' %}" alt="">       
+        </div>              
+        <div class="caption text-center no-padding">
+          <h6 class="text-semibold no-margin">Communication </h6>          
+        </div>
+     </div>
+    </a>
+  </div>
+  <!-- ./communication -->
+  {% if perms.discount.add_voucher %}
+  <!-- customer Reward -->
+  <div class="col-md-3 col-xs-6 hvr-float-shadow">
+  <a href="{% url 'dashboard:sale-list' %}">
+  <div class="thumbnail no-padding">
+        <div class="thumb bg-blue">
+          <img src="{% static 'backend/images/landingpage/customer-rewards.png' %}" alt="">       
+        </div>              
+        <div class="caption text-center no-padding">
+          <h6 class="text-semibold no-margin">Customer Reward </h6>          
+        </div>
+     </div>
+    </a>
+  </div>
+  <!-- ./rewards -->
+  {% endif %}
+  {% if perms.sale.view_terminal or perms.sale.view_paymentoption or perms.sale.view_drawercash %}
+  <!-- Drawer cash -->
+  <div class="col-md-3 col-xs-6 hvr-float-shadow">
+  <a href="{% url 'dashboard:terminals' %}">
+ <div class="thumbnail no-padding">
+        <div class="thumb bg-blue">
+          <img src="{% static 'backend/images/landingpage/drawer-cash.png' %}" alt="">       
+        </div>              
+        <div class="caption text-center no-padding">
+          <h6 class="text-semibold no-margin">Cash Drawer</h6>          
+        </div>
+     </div>
+    </a>
+  </div>
+  <!-- ./drawer cash -->
+  {% endif %}
+  {% if perms.accounts.view_expenses %}
+  <!-- accounting -->
+   <div class="col-md-3 col-xs-6 hvr-float-shadow">
+  <a href="{% url 'accounts:personal_expenses' %}">
+  <div class="thumbnail no-padding">
+        <div class="thumb bg-blue">
+          <img src="{% static 'backend/images/landingpage/accounting.png' %}" alt="">       
+        </div>              
+        <div class="caption text-center no-padding">
+          <h6 class="text-semibold no-margin">Accounting </h6>          
+        </div>
+     </div>
+    </a>
+  </div>
+  <!-- ./accounting -->
+  {% endif %}
+  {% if perms.reports.view_sale_reports or perms.reports.view_products_reports or perms.reports.view_purchase_reports or perms.reports.view_balancesheet %}
+  <!-- reports -->
+   <div class="col-md-3 col-xs-6 hvr-float-shadow">
+  <a href="{% url 'dashboard:sales_list' %}">
+  <div class="thumbnail no-padding">
+        <div class="thumb bg-blue">
+          <img src="{% static 'backend/images/landingpage/reports.png' %}" alt="">      
+        </div>              
+        <div class="caption text-center no-padding">
+          <h6 class="text-semibold no-margin">Reports </h6>          
+        </div>
+     </div>
+    </a>
+  </div>
+  <!-- ./reports -->
+  {% endif %}
+  {% if request.user.is_active %}
+  <!-- configuration -->
+   <div class="col-md-3 col-xs-6 hvr-float-shadow">
+  <a href="{% url 'dashboard:site-index' %}">
+  <div class="thumbnail no-padding">
+        <div class="thumb bg-blue">
+          <img src="{% static 'backend/images/landingpage/setting.png' %}" alt="">       
+        </div>              
+        <div class="caption text-center no-padding">
+          <h6 class="text-semibold no-margin">Settings </h6>          
+        </div>
+     </div>
+    </a>
+  </div>
+  <!-- ./configuration -->
+  {% endif %}
+</div>
+ </div>
+</div>
+{% endblock %}
+{% block custom_js %}
+
+{% endblock %}

@@ -1,0 +1,1187 @@
+
+{% extends "dashboard/base.html" %}
+{% load staticfiles i18n %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load default_user_image %}
+{% block title %}
+  users
+{% endblock %}
+
+ {% block breadcrumbs %}
+     <li><a href="{% url 'dashboard:users' %}">Users</a></li>
+     <li class="active"><a href="{% url 'dashboard:user-edit' pk=user.pk %}">Update User</a></li>
+ {% endblock %}
+
+{% block menu_user_class %}active{% endblock %}
+ {% block custom_css %}
+   <style type="text/css">
+    label.error{
+      color: #FF5722;
+    }
+    #name::placeholder {color: #333;opacity: 1;}
+    #name:focus::placeholder { color:transparent; }
+    #email::placeholder {color: #333;opacity: 1;}
+    #email:focus::placeholder { color:transparent; }
+    #password::-moz-placeholder {color: #333;opacity: 1;}
+    #password:focus::placeholder { color:transparent; }
+    #confirm_password::placeholder {color: #333;opacity: 1;}
+    #confirm_password:focus::placeholder { color:transparent; }
+    #nid::placeholder {color: #333;opacity: 1;}
+    #nid:focus::placeholder { color:transparent; }
+    #mobile::placeholder {color: #333;opacity: 1;}
+    #mobile:focus::placeholder { color:transparent; }
+  </style>
+ {% endblock %}
+
+{% block content %}
+<div class="row animated fadeIn">
+<div class="col-md-12">
+    <div class="panel panel-flat">
+      <div class="panel-heading">
+        <h6 class="panel-title">Update User Details</h6>
+        <div class="heading-elements">
+          <ul class="icons-list">
+            <li><a data-action="collapse"></a></li>
+            <li><a data-action="reload"></a></li>
+            <li><a data-action="close"></a></li>
+          </ul>
+        </div>
+      <a class="heading-elements-toggle"><i class="icon-more"></i></a></div>
+
+      <div class="panel-body">
+        <div class="tabbable">
+          <ul class="nav nav-tabs nav-tabs-highlight">
+            <li class="active" id="profile-tab"><a href="#profile" data-toggle="tab" class="legitRipple" aria-expanded="false">edit user profile</a></li>
+            <li class="" id="permissions-tab"><a href="#permissions" data-toggle="tab" class="legitRipple" aria-expanded="true">edit user permissions</a></li>
+
+          </ul>
+
+          <div class="tab-content">
+
+            <div class="tab-pane animated fadeIn active" id="profile">
+              <form id="update-details" enctype="multipart/form-data"  name="update-details">
+              {% csrf_token %}
+          <div class="row">
+            <div class="col-md-4">
+            <label for="exampleInputEmail1">User Image</label>
+              <div class="form-group">
+                <!-- <label for="exampleInputEmail1">User Image</label> -->
+                <div class="fileinput fileinput-new" data-provides="fileinput">
+                  <div class="fileinput-new thumbnail" style="width: 150px; height: auto;">
+                    <img data-src="holder.js/100%x100%" alt="..." src="{% if user.image %}{{ user.image.url }}{% else %}{% default_user_image %} {% endif %}">
+                  </div>
+                  <div class="fileinput-preview fileinput-exists thumbnail" style="max-width: 200px; max-height: 150px;"></div>
+                  <div style="text-align: center;">
+                    <span class="btn btn-warning btn-file"><span class="fileinput-new">{% if user.image %}Change Image{% else %}Select Image {% endif %}</span><span class="fileinput-exists">Change</span><input type="file" name="image" id="image"></span>
+                    <a href="#" class="btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>
+                  </div>
+                </div>
+              </div>
+                <div class="col-md-10">
+                  <div class="form-group">
+                    <label>Select Permissions Groups</label>
+                    <select multiple="" id="multiple"class="select-border-color border-warning select2-hidden-accessible" tabindex="-1" aria-hidden="true">
+                        {% if groups %}
+                          {% for group in groups %}
+                              {% if group in user_groups %}
+                                  <option value="{{group.name}}" selected="selected"> 
+                                   {{ group.name }}
+                                  </option>
+                              {% else %}
+                                   <option value="{{group.name}}">{{group.name}}</option>
+                              {% endif %}
+                          {% endfor %}
+                        {% endif %}
+                    </select>
+                  </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="name">Full Names</label>
+                    <input type="text" class="form-control" autocomplete='off' placeholder="Full Names" name="fullname" id="fullname" value="{{ user.fullname}}">
+                  </div>
+                  <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" class="form-control" autocomplete='off' placeholder="User Name" name="name" id="name" value="{{ user.name}}">
+                  </div>
+                  <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" autocomplete='off' name="password" id="password" placeholder="*******" pas="{{ user.password}}">
+                   </div>
+                   <div class="form-group">
+                    <label for="exampleInputPassword1">National ID No:</label>
+                    <input type="text" class="form-control" autocomplete='off' name="nid" id="nid" value="{% if user.nid %}{{ user.nid}}{% else %}******{% endif %}">
+                   </div>
+                </div>
+                <div class="col-md-6">
+                   <div class="form-group">
+                      <label for="email">Email address</label>
+                      <input type="email" class="form-control" autocomplete='off' name="email" id="email" value="{{ user.email}}">
+                   </div>
+                   <div class="form-group">
+                    <label for="mobile">Phone</label>
+                    <input type="text" class="form-control" name="mobile" data-mask="(+254)-999-999-999" id="mobile" value="{% if user.mobile %}{{ user.mobile}} {% else %} ****** {% endif %}">
+                   </div>
+                   <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" class="form-control" name="confirm_password" id="confirm_password" placeholder="*******">
+                   </div>
+                   <div class="form-group">
+                      <label for="email">Job Title</label>
+                      <input type="text" class="form-control" name="job_title" id="id_job_title" value="{{user.job_title}}" placeholder="Job title (e.g Cashier)">
+                   </div>
+                </div>
+                <div class="col-md-12">
+                   
+                </div>
+              </div>
+              
+             
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+             <div class="pull-right" style="margin-top:40px;">
+              <a href="{% url 'dashboard:users' %}" class="btn btn-default waves-effect waves-light">Cancel</a>
+
+              <button class="btn btn-primary waves-effect waves-light" id="submit" type="button">Update User <i class="icon-arrow-right14 position-right"></i></button>
+             </div>
+            </div>
+          </div>
+        </form>
+            </div>
+            <div class="tab-pane animated fadeIn" id="permissions">
+              
+                <p class="content-group">Define user permissions by ticking on particular access options. User : <input class="user_id" type="hidden" name="user_id" value=""></p>
+                <p> 
+                  <label class="display-block text-semibold">System Permission Default</label>
+                 
+                  {% if user.is_active %}                          
+                      <div class="checkbox">
+                        <label>
+                          <input class="styled" id="can-login" checked="checked" type="checkbox" value="active">
+                          can login
+                        </label>
+                        <span id="granted" class="text-success">(granted)</span>
+                      </div>
+                  {% else %}
+                      <div class="checkbox">
+                        <label>
+                          <input class="styled checks" id="can-login" type="checkbox"" value="active">
+                          can login
+                        </label>
+                        <span id="granted" class="granted text-success"></span>
+                      </div>
+                  {% endif %}
+
+                </p>
+                <p>
+                  <div class="checkbox">
+                    <label>
+                      <div class="checker"><input class="styled" type="checkbox" id="checkAll"></div>
+                      select all
+                    </label>
+                  </div>
+                </p>
+                <div class="row">
+                 <div class="col-md-12">
+                   <div class="form-group">
+                   {% for permission in permissions%}
+                    {% if permission.content_type.model ==  'unused' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                      {% endfor %}
+                   </div>
+                 </div>
+                </div>
+            <div class="row">
+                 <div class="col-md-12">
+                 <h5>Inventory Management</h5>
+                 </div>
+                <div class="col-md-12">
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Product</label>
+                      {% for permission in permissions%}
+                       {% if permission.content_type.model ==  'product' %}
+                          
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                          
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Category</label>
+                      {% for permission in permissions%}
+                       {% if permission.content_type.model ==  'category' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Product Attribute</label>
+                      {% for permission in permissions%}
+                       {% if permission.content_type.model ==  'productattribute' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Product Sub-Category</label>
+                      {% for permission in permissions%}
+                       {% if permission.content_type.model ==  'productclass' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+
+                                      {% if permission.name == 'Can add product class' %}
+                                        Can add Sub Category
+                                      {% elif permission.name == 'Can change product class' %}
+                                      Can change Sub Category
+                                      {% elif permission.name == 'Can delete product class' %}
+                                      Can delete Sub Category
+                                      {% elif permission.name == 'Can view product class' %}
+                                      Can view Sub Category
+                                      {% endif %}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                  {% if permission.name == 'Can add product class' %}
+                                        Can add Sub Category
+                                      {% elif permission.name == 'Can change product class' %}
+                                      Can change Sub Category
+                                      {% elif permission.name == 'Can delete product class' %}
+                                      Can delete Sub Category
+                                      {% elif permission.name == 'Can view product class' %}
+                                      Can view Sub Category
+                                      {% endif %}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                  </div>
+                  <div class="col-md-12">
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Product Image</label>
+                      {% for permission in permissions%}
+                       {% if permission.content_type.model ==  'productimage' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Product Tax</label>
+                      {% for permission in permissions%}
+                       {% if permission.content_type.model ==  'producttax' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Product Variants</label>
+                      {% for permission in permissions%}
+                       {% if permission.content_type.model ==  'productvariant' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Product Variant Image</label>
+                      {% for permission in permissions%}
+                       {% if permission.content_type.model ==  'variantimage' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                  </div>
+                  <div class="col-md-12">
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Stock</label>
+                      {% for permission in permissions%}
+                       {% if permission.content_type.model ==  'stock' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Stock Location</label>
+                      {% for permission in permissions%}
+                       {% if permission.content_type.model ==  'stocklocation' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                  </div>
+            </div>
+            <!-- end inventory -->
+            <!-- user -->
+            <div class="row">
+                 <div class="col-md-12">
+                 <h5>User Management</h5>
+                 </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Users</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'user' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% if permission.content_type.model ==  'usertrail' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Group</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'group' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check"  checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Customer</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'customer' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Supplier</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'supplier' %}
+                            {% if permission in user_permissions %}                          
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>          
+                                   <input class="styled check" type="checkbox" 
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                <div class="col-md-12">
+                    <h5>Drawer Cash</h5>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Cash Movement</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'drawercash' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {% if permission.name == 'Can add DrawerCash' %}
+                                        Can add Cash Movement
+                                      {% elif permission.name == 'Can change DrawerCash' %}
+                                      Can change Cash Movement
+                                      {% elif permission.name == 'Can delete DrawerCash' %}
+                                      Can delete Cash Movement
+                                      {% elif permission.name == 'Can view DrawerCash' %}
+                                      Can view Cash Movement
+                                      {% endif %}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {% if permission.name == 'Can add DrawerCash' %}
+                                Can add Cash Movement
+                              {% elif permission.name == 'Can change DrawerCash' %}
+                              Can change Cash Movement
+                              {% elif permission.name == 'Can delete DrawerCash' %}
+                              Can delete Cash Movement
+                              {% elif permission.name == 'Can view DrawerCash' %}
+                              Can view Cash Movement
+                              {% endif %}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                    <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Till</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'terminal' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {% if permission.name == 'Can add Terminal' %}
+                                        Can add Till
+                                      {% elif permission.name == 'Can change Terminal' %}
+                                      Can change Till
+                                      {% elif permission.name == 'Can delete Terminal' %}
+                                      Can delete Till
+                                      {% elif permission.name == 'Can view Terminal' %}
+                                      Can view Till
+                                      {% endif %}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {% if permission.name == 'Can add Terminal' %}
+                                        Can add Till
+                                      {% elif permission.name == 'Can change Terminal' %}
+                                      Can change Till
+                                      {% elif permission.name == 'Can delete Terminal' %}
+                                      Can delete Till
+                                      {% elif permission.name == 'Can view Terminal' %}
+                                      Can view Till
+                                      {% endif %}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                    <div class="col-md-3">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Payment Options</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'paymentoption' and permission.content_type.app_label == 'sale'%}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {% if permission.name == 'Can add Payment' %}
+                                        Can add Payment Options
+                                      {% elif permission.name == 'Can change Payment' %}
+                                      Can change Payment Options
+                                      {% elif permission.name == 'Can delete Payment' %}
+                                      Can delete Payment Options
+                                      {% elif permission.name == 'Can view Payment' %}
+                                      Can view Payment Options
+                                      {% endif %}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {% if permission.name == 'Can add Payment' %}
+                                    Can add Payment Options
+                                  {% elif permission.name == 'Can change Payment' %}
+                                  Can change Payment Options
+                                  {% elif permission.name == 'Can delete Payment' %}
+                                  Can delete Payment Options
+                                  {% elif permission.name == 'Can view Payment' %}
+                                  Can view Payment Options
+                                  {% endif %}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+
+                </div>
+            </div>
+                <div class="row">
+                <div class="col-md-3">
+                <div class="col-md-12">
+                    <h5>Discount</h5>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Voucher</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'voucher' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                <div class="col-md-12">
+                    <h5>Reports</h5>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Access Reports</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'reports' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                </div>
+
+                    <div class="col-md-3">
+                <div class="col-md-12">
+                    <h5>Expenses</h5>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group">
+                      <label class="display-block text-semibold">Expenses</label>
+                      {% for permission in permissions %}
+                       {% if permission.content_type.model ==  'expenses' %}
+                            {% if permission in user_permissions %}
+                                <div class="checkbox">
+                                  <label>
+                                    <input class="styled check" checked="checked" type="checkbox" value="{{permission.id}}">
+                                    {{permission.name}}
+                                  </label>
+                                  <span id="granted" class="granted text-success">(granted)</span>
+                                </div>
+                            {% else %}
+                               <div class="checkbox">
+                               <label>
+                                   <input class="styled check" type="checkbox"
+                                  value="{{permission.id}}">
+                                   {{permission.name}}
+                               </label>
+                               <span id="granted" class="granted text-success"></span>
+                               </div>
+                            {% endif %}
+                        {% else %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                  </div>
+                </div>
+            </div>
+            <!-- end user-->
+            <div class="row">
+              <div class="col-md-12">
+                <button class="btn btn-primary" id="permission-btn">Update Permissions</button>
+              </div>
+            </div>
+           </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock%}
+{% block custom_js %}
+  <script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_multiselect.js' %}"></script>
+  <script type="text/javascript" src="{% static 'backend/js/pages/form_multiselect.js' %}"></script>
+  <script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/select2.min.js' %}"></script>
+<script type="text/javascript">
+
+$(document).ready(function(){
+  $('.select-border-color').select2({
+        dropdownCssClass: 'border-primary',
+        containerCssClass: 'border-primary text-primary-700'
+        // containerCssClass: 'select-lg'
+    });
+    $('#update-details').validate({
+      onkeyup: function(element) {$(element).valid()},
+      onsubmit: false,
+        rules: {
+            name: {
+                required: true,
+                minlength: 3
+            },
+            fullname: {
+              required:true
+            },
+            email: {
+                required: true,
+                email: true
+            },
+            password:{
+              required:true,
+              minlength: 6
+            },
+            confirm_password:{
+              required:true,
+              minlength:6,
+              equalTo: "#password"
+            },
+            nid:{
+              required:true,
+              digits: true,
+              minlength: 6
+            },
+            mobile:{
+              required:true,
+              //digits: true,
+              minlength: 6
+            }
+        },  
+        messages:{
+          name:{
+            required: "please provide a name",
+            minlength: "name must be atleast 3 characters long"
+          },
+          password:{
+            required: "please provide a password",
+            minlength: "password must be atleast 6 characters long"
+          },
+          confirm_password:{
+            required: "please provide a password",
+            minlength: "password must be atleast 6 characters long",
+            equalTo: "please enter the same password"
+          }
+        }
+    });
+    $('#submit').click(function(){
+        var raw_groups = $("#multiple :selected").map(function(){
+               return $(this).val();
+            }).get();
+        var user_name, user_email, user_password, user_nid, user_mobile;
+        var fullname= $('#fullname').attr('placeholder'), name= $('#name').attr('placeholder'), email= $('#email').attr('placeholder'), nid= $('#nid').attr('placeholder'), mobile= $('#mobile').attr('placeholder'), password = $('#password').attr('pas');
+        var fullname_v = $('#fullname').val(), name_v = $('#name').val(), email_v = $('#email').val(), password_v = $('#password').val(), nid_v = $('#nid').val(), mobile_v = $('#mobile').val();
+
+        user_name = !name_v ? name : name_v;
+        user_fullname = !fullname_v ? fullname : fullname_v;
+        user_email = !email_v ? email : email_v;
+        user_password = !password_v ? password : password_v;
+        user_nid = !nid_v ? nid : nid_v;
+        user_mobile = !mobile_v ? mobile : mobile_v;
+
+        var file = $('#image')[0].files[0];
+        var f = document.getElementById('update-details');
+        var formData = new FormData(f);
+        formData.append("user_fullname", user_fullname);
+        formData.append("user_name", user_name);
+        formData.append("user_email", user_email);
+        formData.append("user_password", user_password);
+        formData.append("user_nid", user_nid);
+        formData.append("user_mobile", user_mobile);
+        for (var i = 0; i < raw_groups.length; i++) {
+              formData.append('groups[]', raw_groups[i]);
+          }
+
+          for (var pair of formData.entries()) {
+              console.log(pair[0]+ ', ' + pair[1]);
+          }
+
+        if (formData) {
+              $.ajax({
+                  url: "{% url 'dashboard:user-update' pk=user.pk %}",
+                  type: "POST",
+                  data: formData,
+                  processData: false,
+                  contentType: false,
+                  success:function(data){
+
+                     $.jGrowl('Updated successfully', {
+                        header: 'Well done!',
+                        theme: 'bg-success',
+                        beforeClose: function(){
+                            window.location = "{% url 'dashboard:users' %}";
+                        }
+                     }, 100);
+                  },
+                  error:function(error){
+                    $.jGrowl('Change a few things up and try submitting again', {
+                        header: 'Oh snap!',
+                        theme: 'bg-danger'
+                    });
+                  }
+              });
+          } 
+
+    });
+});
+/* disable th permissions tab code */
+$('#next-tab').click(function(){
+  $('#permissions-tab').addClass('disabled').find('a').removeAttr('data-toggle').attr('href','javascript:;');
+});
+function disable_profile_tab(){
+  $('#rofile-tab').addClass('disabled').find('a').removeAttr('data-toggle').attr('href','javascript:;');
+}
+/* code to move to next tab */
+function next_tab(){
+  $('#profile').removeClass('active');
+  $('#profile-tab').removeClass('active');
+  $('#permissions').addClass('active');
+  $('#permissions-tab').addClass('active');
+}
+/* if not login permission */
+$("#can-login").click(function () {
+  var checked = $(this).is(':checked');
+  if(checked){
+          $(this).prop("checked", true);
+          $(this).parent().parent().parent().siblings('span').show();
+          $(this).parent().parent().parent().siblings('span').text('(granted)');
+      $('.check').each(function(){         
+          $(this).parent().parent().removeClass('disabled');
+          $(this).parent().parent().parent().parent().removeClass('disabled');
+          $(this).removeAttr('disabled');
+      });
+  }else{
+          $(this).prop("checked", false);
+          $(this).parent('span').removeClass('checked');
+          $(this).parent().parent().parent().siblings('span').hide();
+      $('.check').each(function(){
+          $(this).parent().parent().addClass('disabled');
+          $(this).parent().parent().parent().parent().addClass('disabled');
+          $(this).attr('disabled', 'disabled');
+      });
+  }
+});
+/* end login */
+/* check all */
+$("#checkAll").click(function () {
+  var checked = $(this).is(':checked');
+  if(checked){
+      $('.check').each(function(){
+          $(this).prop("checked", true);
+          $(this).parent().parent().parent().siblings('span').show();
+          $(this).parent().parent().parent().siblings('span').text('(granted)');
+          $(this).parent().addClass('checked');
+      });
+  }else{
+      $('.check').each(function(){
+          $(this).prop("checked", false);
+          $(this).parent().parent().parent().siblings('span').hide();
+          $(this).parent().removeClass('checked');
+      });
+  }
+});
+/* endcheck all */
+/* on each check */
+$( ".check" ).on( "click", function(){
+  var checked = $(this).is(':checked');
+  if(checked){
+    $(this).prop("checked", true);
+    $(this).parent().parent().parent().siblings('span').show();
+    $(this).parent().parent().parent().siblings('span').text('(granted)');
+        if($('.check:checked').length == $('.check').length){
+            $('#checkAll').prop("checked", true);
+            $('#checkAll').parent('span').addClass('checked');
+        }
+  }else{
+
+   if($('#checkAll').is(':checked')){
+           $('#checkAll').prop("checked", false);
+           $('#checkAll').parent('span').removeClass('checked');
+           $('#checkAll').parent().parent().parent().siblings('span').hide();
+
+          $('.check:not(this)').each(function(){
+              $(this).prop("checked", true);
+              $(this).parent().parent().parent().siblings('span').show();
+              $(this).parent().parent().parent().siblings('span').text('(granted)');
+          });
+
+           $(this).prop("checked", false);
+           $(this).parent('span').removeClass('checked');
+           $(this).parent().parent().parent().siblings('span').hide();
+    }else{
+         $(this).prop("checked", false);
+         $(this).parent('span').removeClass('checked');
+         $(this).parent().parent().parent().siblings('span').hide();
+
+    }
+  }
+} );
+/* end each check*/
+
+
+/* permission button */
+$("#permission-btn").click(function(event){
+    event.preventDefault();
+    var checkBoxesStringArray = $(".check:checked").map(function(){
+      return $(this).val();
+    }).get();
+    var checkBoxesStringNumber = checkBoxesStringArray.map(Number);
+    /* check can login status */
+    if($("#can-login").is(':checked')){
+      $("#can-login").val('active')
+    }else{
+      $("#can-login").val('inactive');
+    }
+    var can_login_value = $("#can-login").val();
+     console.log(checkBoxesStringNumber+' and '+ can_login_value);
+    $.ajax({
+      url: "{% url 'dashboard:user_assign_permission' %}",
+      type: 'POST',
+      data: {
+             'checklist[]': checkBoxesStringArray,
+             'user_id': '{{user.id}}',
+             'check_login':can_login_value,
+             'csrfmiddlewaretoken':"{{ csrf_token }}"
+      },
+      success: function(data){
+         $.jGrowl('permissions updated successfully', {
+              header: 'Well done!',
+              theme: 'bg-success'
+         });
+         window.location.reload()
+         // window.location = "{#{% url 'dashboard:users' %}#}";
+         localStorage.removeItem('user_id');
+      }
+      ,error:function(){}
+     });
+
+});
+</script>
+{% endblock %}

@@ -1,0 +1,336 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+
+{% block title %}
+  {% if variant.pk %}
+    {{ variant.sku }}{% if variant.name %} ({{ variant.name }}){% endif %}
+  {% else %}
+    {% trans "Add variant" context "Variant form page title" %}
+  {% endif %}
+   - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-store body-products{% endblock %}
+
+{% block header_menu %}
+  {% url "dashboard:product-update" pk=product.pk as url %}
+  {% include "dashboard/includes/_back-link.html" with url=url hash="?tab=variants" %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  
+    <li>
+      <a href="{% url "dashboard:product-list" %}" class="">
+        {% trans "Products" context "Dashboard products list" %}
+      </a>
+    </li>
+   
+    <li>
+      <a href="{% url "dashboard:product-update" pk=product.pk %}?tab=variants" class="">
+        {{ product }}
+      </a>
+    </li>
+    {% if variant.pk %}
+      <li class="active">
+        <span >
+          {{ variant }}
+        </span>
+      </li>
+    {% else %}
+      <li>
+        
+        <span class="hide-on-large-only breadcrumbs--ellipsed-item">
+          {% blocktrans trimmed context "Variant form breadcrumbs" %}
+            Add variant for {{ product }}
+          {% endblocktrans %}
+        </span>
+      </li>
+    {% endif %}
+  
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block custom_css %}
+<link href="{% static 'backend/js/plugins/tokenize/tokenize2.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+{% block content %}
+  <div class="">
+    <div class="col s12 m9">
+      <div class="">
+       
+        <!-- 2 columns form -->
+ <form method="post" id="form-variant" enctype="multipart/form-data">
+          <div class="card-content">
+            {% csrf_token %}
+            <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}?tab=variants">
+  <div class="panel panel-flat">
+    <div class="panel-heading">
+      <h5 class="panel-title">Product Variant</h5>
+      <div class="heading-elements">
+        <ul class="icons-list">
+          <li><a data-action="collapse"></a></li>
+          <li><a data-action="reload"></a></li>
+          <li><a data-action="close"></a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="panel-body">
+      <div class="row">
+      {% if errors %}
+      <div class="alert alert-styled alert-danger">
+         {{ errors }}
+      </div>
+      {% endif %}
+      {% if form_errors %}
+       <div class="alert alert-styled alert-danger">
+         {{ form_errors }}
+        </div>
+      {% endif %}
+        <div class="col-md-6">
+          <fieldset>
+            <legend class="text-semibold"></legend>
+
+                       
+            <!-- form.name|materializecss }} -->
+         
+
+            <div class="form-group">
+              <label>Product Variants:
+
+              <input type="hidden" value='{% url "dashboard:product-attr-add-value" 1 %}' id="link-pk" name="link-pk">
+              <button id="add-new-classd" onclick="return false;" class="btn bg-primary btn-icon  text-bold btn- btn-lg" data-refresh="{% url 'dashboard:product-class-add' %}" data-href='{% url "dashboard:product-attr-add-value" 1 %}'
+                      href="#modal_attribute"  data-popup="tooltip" 
+            data-original-title="Add attributes" data-title="Add attributes">
+            <i class="icon-plus-circle2"></i>
+            </button>
+            </a>
+              </label>
+              <div id="div_attributes">
+              {% if attribute_form.fields %}
+                  {% for attribute_field in attribute_form %}
+                    <div class="row checkHover" data-attpk="{{attribute_field.html_name}}">     
+                      <div class="col-md-10">
+                      {{ attribute_field|materializecss }}
+                      </div>
+                      <div class="col-md-2 mt-15  ">
+                        <label>&nbsp;</label>
+                        <i class="text-danger icon-trash iconx hidden"></i>
+                     </div>
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  <p>
+                    {% trans "This product has no variants." context "Variant form text" %}
+                  </p>
+                {% endif %}
+              </div>
+            </div>                      
+          </fieldset>
+        </div>
+        <!-- form division separator no go zone -->
+        <div class="col-md-6">
+          <fieldset>
+            <legend class="text-semibold"></legend>
+
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">                
+                  {{ form.sku|materializecss }}
+                </div>
+                <div class="form-group">
+                {{ form.low_stock_threshold|materializecss }}
+            </div>
+              </div> 
+               <div class="col-md-6">
+                 <div class="form-group">          
+                    {{ form.price_override|materializecss }}
+                </div>
+                <div class="form-group">          
+                    {{ form.wholesale_override|materializecss }}
+                </div>
+              </div>             
+            </div>
+
+            <div class="row">
+              <div class="col-md-12">
+                
+              </div>
+            </div>
+           
+
+            
+          </fieldset>
+        </div>
+      </div>
+
+      <div class="text-right">
+        {% if variant.pk %}
+              <a href="{% url "dashboard:product-update" pk=product.pk %}?tab=variants" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light"><i class="icon-arrow-right14 position-right"></i>
+                {% trans "Update" context "Dashboard update action" %}
+              </button>
+            {% else %}
+              <a href="{% url "dashboard:product-update" pk=product.pk %}?tab=variants" class="btn btn-flat">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn waves-effect waves-light"><i class="icon-arrow-right14 position-right"></i>
+                {% trans "Create" context "Dashboard create action" %}
+              </button>
+            {% endif %}
+        
+      </div>
+    </div>
+  </div>
+</form>
+<!-- /2 columns form -->
+      </div>
+    </div>
+    <div class="col s12 m3 help-box"></div>
+  </div>
+<input type="hidden" class="pageUrls" data-attributes="{% url 'dashboard:attr_list_f32b' %}" data-addattrurl="{% url 'dashboard:product-attr-add' %}" data-addclassurlb="{% url 'dashboard:attr_list_f32d' %}" data-addclassurl="{% url 'dashboard:product-class-form32b' %}">
+
+<input id="id_product_class" type="hidden" disabled="" name="product_class" value="{{ product.product_class.id}}">
+{% include "dashboard/includes/_modal_classesc.html"  %}
+{% endblock %}
+
+{% block custom_js %}
+<script type="text/javascript" src="{% static 'backend/js/plugins/tokenize/tokenize2.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/addVariantModal.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_select.min.js' %}"></script>
+<script type="text/javascript">
+   // refreshAttributes func
+  function refreshAttributes() {  
+   {% url "dashboard:fetch-variants32" as url %} 
+   var url = "{{ url }}";
+   var class_pk = $('#id_product_class').val(); 
+   var csrf_token = jQuery("[name=csrfmiddlewaretoken]").val();    
+   var posting = $.post( url, {
+                class_pk:class_pk,
+                csrfmiddlewaretoken:csrf_token,
+                product_pk:"{{product.pk}}"
+              } );
+   
+   posting.done(function( data ) {    
+    $( "#div_attributes" ).empty().append( data );   
+  });
+
+  } //./end
+
+  // var checkHover = $('.checkHover');
+  
+  // checkHover.on('mouseenter touchEnd MSPointerUp pointerup',function(){
+  //   $(this).find('.iconx').removeClass('hidden');
+  // });
+  // checkHover.on('mouseleave',function(){
+  //   $(this).find('.iconx').addClass('hidden');
+  // });
+
+  // Default initialization
+    $(".styled, .multiselect-container input").uniform({
+        radioClass: 'choice'
+    });
+
+    // Basic select
+    $('.bootstrap-select').selectpicker();
+
+    function alertUser(msg,status='bg-success',header='Well done!')
+  {
+      $.jGrowl(msg, 
+      {header: header,theme: status});
+  }
+  
+    $('.selectAttributesChoice').tokenize2({
+    placeholder: 'Add attribute choice(s) (eg. 1kg, 2kg)',
+    tokensAllowCustom:true,      
+    });
+    $('.selectVariantChoice').tokenize2({
+    placeholder: 'Add variant choice(s) (eg. 1kg, 2kg)',
+    tokensAllowCustom:true,      
+    });
+    function addAttributePlusChoice(dynamicData,myUrl) 
+    {     
+       return $.ajax({
+          url: myUrl,
+          type: "post",
+          data: dynamicData
+        });
+    }
+    
+    var getAttributesChoice = $('.selectAttributesChoice');
+    var getVariantChoice = $('.selectVariantChoice');
+    var addAttributeChBtn = $('#addAttributeChBtn');
+    var addVariantChBtn = $('#addVariantChBtn');
+
+    addVariantChBtn.on('click',function(){
+      var newattrName = $('#newvName').val();
+      var choices = getVariantChoice.val();
+      if(!newattrName)
+      {
+        alertUser('Variant name required','bg-danger','Variant name required');
+        return false;
+      }
+      if(!choices)
+      {
+        alertUser('Variant name required','bg-danger','Variant name required');
+        return false;
+      }
+      var dynamicData = {};
+      var myUrl = "{% url 'dashboard:add-new-attribute' %}";
+      dynamicData["attributes"] = JSON.stringify(choices);
+      dynamicData["name"] = newattrName;
+      dynamicData["csrfmiddlewaretoken"]  = jQuery("[name=csrfmiddlewaretoken]").val();
+      dynamicData['track'] = 'Add attribute plus choice';
+      addAttributePlusChoice(dynamicData,myUrl)
+      .done(function(data){
+        alertUser('Success');
+        getAttributesChoice.val('');
+         
+         getVariantChoice.parents('div').find('li.token').remove();
+        $('#newvName').val('');
+      })
+      .fail(function(){
+        alertUser('Variant already exist','bg-danger','Add unique variant name');
+      });
+    });
+
+    addAttributeChBtn.on('click',function(){
+      var newattrName = $('#newattrName').val();
+      var choices = getAttributesChoice.val();
+      if(!newattrName)
+      {
+        alertUser('Attribute name required','bg-danger','Attribute name required');
+        return false;
+      }
+      if(!choices)
+      {
+        alertUser('Attribute name required','bg-danger','Attribute name required');
+        return false;
+      }
+      var dynamicData = {};
+      var myUrl = "{% url 'dashboard:add-new-attribute' %}";
+      dynamicData["attributes"] = JSON.stringify(choices);
+      dynamicData["name"] = newattrName;
+      dynamicData["csrfmiddlewaretoken"]  = jQuery("[name=csrfmiddlewaretoken]").val();
+      dynamicData['track'] = 'Add attribute plus choice';
+      addAttributePlusChoice(dynamicData,myUrl)
+      .done(function(data){
+        alertUser('Success');
+        getAttributesChoice.val('');
+         
+         $(".selectAttributesChoice").parents('div').find('li.token').remove();
+        $('#newattrName').val('');
+      })
+      .fail(function(){
+        alertUser('Attribute already exist','bg-danger','Add unique attribute name');
+      });
+    });
+
+    
+</script>
+{% endblock %}

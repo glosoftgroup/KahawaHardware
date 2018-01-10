@@ -1,0 +1,1559 @@
+{% extends "dashboard/base.html" %}
+{% load prices_i18n %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+{% load attributes %}
+
+
+{% block title %}
+  {% if product.pk %}
+    {{ product }}
+  {% else %}
+    {% trans "Add new product" context "Product form page title" %}
+  {% endif %}
+   - {% trans "Products" context "Dashboard products list" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-products{% endblock %}
+
+{% block menu_products_class %}active{% endblock %}
+
+{% block custom_css %}
+<link href="{% static 'backend/js/plugins/tokenize/tokenize2.css' %}" rel="stylesheet" type="text/css">
+    <style>
+    /* The first modal translateZ value*/
+    .container {
+      margin: 5em auto;
+    }
+    
+    </style>
+{% endblock %}
+{% block header_menu %}
+  {% url "dashboard:product-list" as url %}
+  {% include "dashboard/includes/_back-link.html" with url=url %}
+{% endblock %}
+
+{% block breadcrumbs %}
+ 
+    <li>
+      <a href="{% url 'dashboard:product-list' %}" >
+        {% trans "Products" context "Dashboard products list" %}
+      </a>
+    </li>
+   
+    <li class="active">
+     
+        {% if product.pk %}
+          {{ product }}
+        {% else %}
+          {% trans "Add new product" context "Product form breadcrumbs" %}
+        {% endif %}
+     
+    </li>
+  
+{% endblock %}
+
+{% block header_extra %}
+
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+
+{% block content %}
+
+<div id='results'></div>
+<div class="row">
+    <div class="col-md-12">
+            <div class="panel panel-flat">
+              
+              <div class="panel-body animated fadeIn">
+                <div class="tabbable ">
+                   
+                  <ul class="nav nav-tabs nav-tabs-highlight">
+                  <!-- general settings tab -->
+                   {% if request.GET.tab %}                   
+                     <li>             
+                    {% else %}
+                      <li class="active bordered-tab1">
+                    {% endif %}
+                        <a href="#bordered-tab1" data-toggle="tab">Product Name</a>
+                      </li>
+                     
+                    
+                    <!-- variant tab -->
+                    {% if request.GET.tab == 'variants'  %}                   
+                     <li class="active">
+                    {% else %}
+                      <li class="bordered-tab2">             
+                    {% endif %}
+                    <a href="#bordered-tab2" class="tabProductAdded" data-toggle="tab">Pricing</a></li>
+                    <!-- stock tab -->
+                   {% if request.GET.tab == 'stock'  %}                   
+                     <li class="active">
+                    {% else %}
+                      <li>             
+                    {% endif %}
+                    <a href="#stock-tab" class="tabProductAdded" data-toggle="tab">Stock</a></li>
+                    <!-- images tab -->
+                    {% if request.GET.tab == 'images'  %}                   
+                     <li class="active">
+                    {% else %}
+                      <li >             
+                    {% endif %}
+                    
+                    <a href="#images-tab" class="tabProductAdded" data-toggle="tab">Images</a>
+                    </li>
+                     <!-- endif %} -->
+                    
+                  </ul>
+                    
+                  <div class="tab-content">
+                  {% if request.GET.tab %}                   
+                     <div class="tab-pane has-padding" id="bordered-tab1">            
+                    {% else %}
+                      <div class="tab-pane has-padding active" id="bordered-tab1">
+                    {% endif %}
+
+                       <!-- 2 columns form -->
+        <form method="post" class="form-horizontals" id="form-product" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}         
+            <div class="panelpanel-flat">
+             
+              <div class="panel-body">
+              
+                {% if errors %}
+                <div class="alert alert-danger alert-styled-left">
+                  {{errors}} 
+                  </div>             
+                {% endif %}
+
+  <!-- panel -->
+
+    <!-- body -->
+    <div class="row">
+
+     <div class="col-md-12">
+       <!-- Product Details -->
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Product Name:<i class='text-danger'> *</i></label>
+                {{ product_form.name}}
+            </div>
+         </div>
+            <div class="col-md-4">
+              <div class="form-group" >
+                <label>Product Category:<i class='text-danger'> *</i> </label>
+                <div class="input-group">
+                             
+                      <div class=" input-group-btn" id='category_field' >
+                        <!--{{ product_form.categories }}-->
+
+                          <select style="display:none" class="form-control" id="id_categories" name="categories" required>
+                              {% if product.pk %}
+                              {% with product.get_first_category as category %}
+                              {% if category %}
+                              <option value="{{category.id}}">{{ category }}</option>
+                              {% endif %}
+                              {% endwith %}
+                              {% else %}
+                              <option value="">---</option>
+                              {% endif %}
+
+                              {% for cat in categories %}
+                              <option value="{{cat.pk}}">{{cat}}</option>
+                              {% endfor %}
+                          </select>
+
+                      </div>
+                  
+                  <div class="input-group-btn">
+                     <button type="button" class="btn bg-primary btn-icon legitRipple edit_modal-trigger" data-popup="tooltip"
+                    data-original-title="Add New category"
+                    href="#modal_add_category" id="add-new-category" data-title="Add New category" data-href='{% url "dashboard:category-add32" %}' data-csrf="{% csrf_token %}" onclick='return false;'>
+                       <i class="icon-plus-circle2"></i>
+                     </button>
+                   </div>
+                 </div>
+                  <br>
+                          <label class="error"></label>
+
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="form-group" id='productType'>
+                <label>Product Sub-Category:<i class='text-danger'> *</i> </label>
+                <div class="input-group sub-refresh">
+                    {{ product_form.product_class}}
+
+                 <div class="input-group-btn">
+                    <button type="button"  id="add-new-class" data-modal="#addProductClass" href="#addProductClass" class="btn bg-primary btn-icon "
+                    data-title="Add New SubCategory" data-href='{% url "dashboard:product-class-add-new" 12 %}'
+                            data-csrf="{% csrf_token %}" onclick='return false;'  data-popup="tooltip"
+                            data-original-title="Add New Sub-Category">
+                   <i class="icon-plus-circle2"></i>
+                    </button>
+                  </div>
+              </div>
+              </div>
+            </div>
+        
+      
+     </div>
+
+     <!-- product attributes -->
+     <div class="col-md-12">
+       <!-- Product attributes -->
+        <div class="col-md-12 hidden">
+          
+         <div class="form-group">         
+          <label> Product Attributes</label>
+          <button type="button" class="btn btn-flat btn-sm" data-popup="popover" data-placement="bottom" title="Product Type" data-trigger="hover" data-content="– it’s a characteristic of a product, shared with all product variants. Example: Manufacturer - all flour variants(1kg,2kg) are published by same company"> <i class="icon-info22 position-right"></i></button>
+           <span>
+            <a href="">
+              <input type="hidden" value='{% url "dashboard:product-attr-add-value" 1 %}' id="link-pk" name="link-pk">
+              <button id="add-new-classd" onclick="return false;" class="btn bg-primary btn-icon  text-bold btn- btn-lg" data-refresh="{% url 'dashboard:product-class-add' %}" data-href='{% url "dashboard:product-attr-add-value" 1 %}'
+                      href="#modal_attribute"  data-popup="tooltip" 
+            data-original-title="Add attributes" data-title="Add attributes">
+            <i class="icon-plus-circle2"></i>
+            </button>
+            </a>
+          </span>
+          </div>
+        </div>
+      <!-- product attribute -->
+      <div class="col-md-12 hidden" style="margin-bottom:20px;">
+        <!-- product attributes -->
+        <!-- add id='div_attributes' below div -->
+        <div class="form-group" >
+           {% for attribute_field in product_form.iter_attribute_fields %}
+          <div class="col-md-4">
+           <label>{{ attribute_field.label }}</label>
+            {{ attribute_field }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <!-- ./product attribute -->
+  <div class="hidden"> 
+   {% if product.pk %}
+   {{ product_form.price }}
+    {% if not product.product_class.has_variants %}
+        <div class="row">   
+         {{ variant_form.sku|materializecss }}
+       </div>
+       {% endif %}
+   {% else %}
+    <div class="col-md-9">
+    <input class="form-control" id="idprice" name="price" value="0" required="" type="number">
+    <input class="form-control validate" id="idvariant-sku" maxlength="32" name="variant-sku" value="EN000-1" required="required" type="text">
+    </div>  
+    {% endif %}    
+    
+  </div>
+
+
+     </div>    
+
+    </div>
+    <!-- ./body --> 
+  
+  <!-- ./panel -->
+ 
+
+
+                <div class="col-md-6 col-md-offset-3 text-center p-10" style="margin-top:20px;">
+                  {% if product.pk %}
+              <a href="{% url 'dashboard:product-list' %}" class="btn btn-default pull-left">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button onclick="return false;" data-pk="{{product.pk}}" data-href="{% url 'dashboard:product-data' %}" id="update_product_btn" type="submit" class="btn btn-primary waves-effect waves-light pull-right">
+                {% trans "Update" context "Dashboard update action" %}
+              </button>
+            {% else %}
+              <a href="{% url 'dashboard:product-list' %}" class="btn btn-default pull-left">
+                {% trans "Cancel" context "Dashboard cancel action" %}
+              </a>
+              <button type="submit" class="btn btn-primary waves-effect waves-light pull-right">
+                {% trans "Create" context "Dashboard create action" %}
+              </button>
+            {% endif %}
+                </div>
+              </div>
+            </div>
+          </form>
+          <!-- /2 columns form -->
+                    </div>
+  <!-- panel product pricing -->
+
+  <!-- ./end produc pricing -->
+                    <!-- panel product variant -->
+                    {% if request.GET.tab == 'variants'  %}                   
+                     <div class="tab-pane has-padding active" id="bordered-tab2">
+                    {% else %}
+                      <div class="tab-pane has-padding" id="bordered-tab2">            
+                    {% endif %}
+                    {% include "dashboard/product/partials/pricing.html" with product=product %}
+                    {% if product.pk %}
+     
+                      {% if product.product_class.has_variants %}
+      <!-- CODE V -->
+      <div id="variants" class="">
+      <div id="div-edit-variant" class="mb-20"></div>
+      <div class="mb-15">
+        <button class="btn btn-primary" id="btntogglev">
+          Add variant
+        </button>
+      </div>
+      <style type="text/css">
+        #toggleVariant{display:none;}
+      </style>
+      <div id="toggleVariant" class="card-3">
+      <table class="table table-hover">
+        <thead>
+        <tr class="bg-primary">  
+        <th>SKU <span class="text-danger">*</span></th>
+        {% for v in pc %} 
+         <th>{{v}}</th>       
+        {% endfor %}
+        <th>Retail Price <span class="text-danger">*</span></th>
+        <th>Wholesale Price</th>
+            <th>Minimum price <span class="text-danger">*</span></th>
+        <th></th>
+        </tr>
+        </thead>
+        <tbody>
+          <tr>
+          <td>
+            <input type="text" id="new-sku-td" placeholder="Enter SKU" class="form-control" name='new-sku-td'>
+              <span class="help-block text-danger"></span>
+          </td>
+          {% for v in pc%}
+          <td>
+           <select placeholder="{{v}}" data-pk={{v.pk}} name="{{v}}" class="bootstrap-select form-control dynamicvxx">
+            <option></option>         
+            
+              {% for value in v.values.all %} 
+                <option value="{{value.pk}}">{{ value }}</option>
+              {% endfor %}
+            </select>
+            </td>            
+          {% endfor %}
+           <td>
+            <input type="number" placeholder="Retail price" class="form-control" id="rprice" name='rprice'>
+               <span class="help-block text-danger"></span>
+            </td>
+            <td>
+              <input type="number" placeholder="Wholesale Price" class="form-control" id="wprice" name='wprice'>
+                <span class="help-block text-danger"></span>
+            </td>
+              <td>
+              <input type="number" placeholder="Mininum Price" class="form-control" id="mprice" name='mprice'>
+                  <span class="help-block text-danger"></span>
+            </td>
+            <td>
+              <button class="btn btn-xs btn-primary" id="addvariantBtn" data-refreshvurl="{% url 'dashboard:refresh-stock-table' product_pk=product.pk %}" data-productpk="{{product.pk}}" data-attrurl="{% url 'dashboard:add-attributes' %}">Add</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+      
+      <!-- <button class="btn btn-primary" id="addNewvaraints">New variant</button> -->
+        <form method="post" action="{% url 'dashboard:variant-bulk-delete' product_pk=product.pk %}" novalidate>
+          {% csrf_token %}
+          <div class="data-table-header-action" style="padding:8px;">
+
+          <!-- code add/edit -->
+            <a href="{% url 'dashboard:variant-add' product_pk=product.pk %}" class="btn-data-table btn-show-when-unchecked btn btn-primary hidden">
+              {% trans "Add" context "Dashboard add action" %}
+            </a>
+            <a href="#modal-product-variant-delete" class=" btn-data-table btn-show-when-checked btn btn-danger" id="modal-product-variant-delete-btn" style="display:none" hidden>
+              {% trans "Delete" context "Dashboard delete action" %}
+            </a>
+
+            <div class="modal fade" id="modal-product-variant-delete">
+            <div class="modal-dialog">
+              <div class="modal-content">
+              <div class="modal-header bg-blue">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h6 class="modal-title text-white">Delete Variant(s)</h6>
+              </div>
+              <div class="modal-body">
+                <h5>
+                  {% trans "Are you sure?" context "Dashboard confirmation modal" %}
+                </h5>
+                <p>
+                  {% blocktrans trimmed context "Modal delete variant from product text" %}
+                    You are about to delete variants of this product.
+                  {% endblocktrans %}
+                </p>
+                </div>
+                <!-- add footer -->
+                <div class="modal-footer">
+                <button type="submit" class="btn btn-danger modal-action ">
+                  {% trans "Delete" context "Dashboard delete action" %}
+                </button>
+                <a href="#!" data-dismiss="modal" class="modal-action btn btn-link ">
+                  {% trans "Cancel" context "Dashboard cancel action" %}
+                </a>
+              </div>
+                <!-- end footer -->
+              </div>
+              </div>
+              
+            </div>
+          </div>
+          <div class="data-table-container" id="refreshvaraintscontent">
+
+            <table class="table  datatable-header-footer">
+              {% if variants %}
+                <thead>
+               
+                  <tr class="bg-primary">
+                    
+                    <th>
+                      {% trans "SKU" context "Product variant table header" %}
+                    </th>
+                    <!-- <th>Re-order Threshold</th> -->
+                    {% for attribute in attributes %}
+                      <th>
+                        {{ attribute.name|capfirst }}
+                      </th>
+                    {% endfor %}                  
+                    
+                    <th class="right-align">
+                      Retail Price
+                    </th>
+                    <th class="right-align">
+                      Wholesale Price
+                    </th>
+                      <th>
+                          Minimum Price
+                      </th>
+                    <th class="text-center">Options</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for variant in variants %}
+                    <tr id="variant-row{{variant.pk}}" data-action-go="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" title="{% trans "Edit variant" context "Product variant table link title" %}">
+                      
+                      <td>
+                        {{ variant.sku }}
+                      </td>
+                     <!--  <td>
+                        {{variant.low_stock_threshold}}
+                      </td> -->
+                      {% for attr_display in variant|attributes_values_with_empty:attributes %}
+                        <td>
+                          {{ attr_display }}
+                        </td>
+                      {% endfor %}
+                     
+                      <!-- retail price -->
+                      <td class="right-align">
+                {% gross variant.get_price_per_item html=True %}
+                      </td>
+                      <!-- wholesale price -->
+                      <td class="right-align">
+                      {% if variant.get_wholesale_price_per_item %}
+                {% gross variant.get_wholesale_price_per_item html=True %}
+                     {% endif %}
+                      </td>
+                   <!--minimum price-->
+                  <td class="right-align">
+                      {% if variant.minimum_price %}
+                {% gross variant.minimum_price html=True %}
+                     {% endif %}
+                      </td>
+                      <!-- actions -->
+                    <td class="text-center">
+                      <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        action <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu edit-dropdown">   
+                        <li><a onclick="return false;" class="editVariantBtn" data-pk="{{variant.pk}}" data-href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}"><i class="icon-pencil7"></i> EDIT</a></li>
+                       
+                        <li>
+                          <a data-ta="#modal_delete_instance" data-title="Delete {{variant}}?" data-href="{% url 'dashboard:single-variant-delete' product_pk=product.pk variant_pk=variant.pk %}" data-tabname='?tab=variants' 
+                         data-successurl="{% url 'dashboard:product-update' pk=product.pk  %}" data-name="{{ variant.name }}" data-id="{{ variant.pk }}"
+                       class="modal-trigger-delete"><i class="icon-trash" href="#modal_delete_instance" data-toggle="modal"></i> DELETE
+                       </a>
+                        </li>
+                       
+                        </ul>
+                    </div>
+                      
+                    </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              {% else %}
+                  <tbody>
+                    <tr>
+                      <td>
+                        <span>
+                          {% trans "There are no variants for this product" context "Empty product variant table message" %}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+              {% endif %}
+            </table>
+          </div>
+          <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}?tab=variants">
+        </form>
+      </div>
+    {% else %}
+     <div class="alert alert-warning">
+      <p>This product has no varaints</p>
+     </div>
+    {% endif %}
+    {% endif %}
+     
+                    </div>
+                    <!-- end product variant -->
+                    <!-- product stock -->
+                    {% if request.GET.tab == 'stock'  %}                   
+                     <div class="tab-pane has-padding active" id="stock-tab">
+                    {% else %}
+                     <div class="tab-pane has-padding" id="stock-tab">            
+                    {% endif %}
+                    
+                     {% if product.pk %}
+                  <!-- CODE S -->
+      <!-- STOCK DETAILS -->
+      <div id="div-edit-stock" class="mb-20"></div>
+      {% include "dashboard/product/partials/stock_details.html" with product=product %}
+       <!--include 'dashboard/product/partials/stock_table_form.html' with product=product %}-->
+        {% include "dashboard/product/partials/add_stock_form.html" with product=product %}
+     <div id="stock" class="">
+      <form method="post" action="{% url 'dashboard:stock-bulk-delete' product_pk=product.pk %}" novalidate>
+        {% csrf_token %}
+        <div class="data-table-header-action" style="padding: 8px;">
+          <a href="#" data-contenturl="{% url 'dashboard:product-stock-add-form' product_pk=product.pk %}" onclick="return false" id="addNewStockBtn" class="btn-data-table btn-show-when-unchecked hidden btn btn-primary">
+            {% trans "Add" context "Product form stock tab table action" %}
+          </a>
+          <a href="#modal-product-stock-delete" class=" btn-data-table btn-show-when-checked btn btn-danger" data-toggle="modal"  data-target="#modal-product-stock-delete"  style="display:none" hidden>
+            {% trans "Delete" context "Dashboard delete action" %}
+          </a>
+          <div class="modal fade" id="modal-product-stock-delete">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header bg-blue">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h6 class="modal-title text-white">Delete Stock</h6>
+              </div>
+            <div class="modal-body">
+              <h5>
+                {% trans "Are you sure?" context "Dashboard confirmation modal" %}
+              </h5>
+              <p>
+                {% blocktrans trimmed context "Modal delete stock from variant text" %}
+                  You are about to delete stock for this product variant.
+                {% endblocktrans %}
+              </p>
+            </div>
+            <!-- end modal body -->
+              <div class="modal-footer">
+                <button type="submit" class="modal-action btn btn-danger">
+                  {% trans "Delete" context "Dashboard delete action" %}
+                </button>
+                <a href="#!" data-dismiss="modal" class="modal-action modal-close  btn btn-link ">
+                  {% trans "Cancel" context "Dashboard cancel action" %}
+                </a>
+              </div>
+            <!-- end footer -->
+            </div>
+            </div>
+            <!-- end dialog -->            
+          </div>
+          <!-- end modal -->
+        </div>
+      
+        <div class="data-table-container">
+          <table class="table  datatable-header-footer responsive data-table">
+            
+            <thead>
+              <tr class='bg-primary'>
+                <th>Name</th>
+                <th>
+                  {% trans "SKU" context "Stock table header" %}
+                </th>
+                <th> Cost Price</th>
+                <th>
+                  Retail Price
+                </th>                
+                <!-- <th class="wide">
+                  {% trans "Location" context "Stock table header" %}
+                </th> -->
+                <th class="right-align">
+                  {% trans "Quantity" context "Stock table header" %}
+                </th>
+                <th>
+                  Reorder Threshold
+                </th>
+                <th class="right-align">
+                  {% trans "Allocated" context "Stock table header" %}
+                </th>
+                <th>Options</th>
+              </tr>
+            </thead>
+             <tbody id="refreshStockitems">
+            {% if stock_items %}
+           
+              {% for item in stock_items %}
+                <tr data-action-go="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}" title="{% trans "Edit variant" context "Stock table action" %}">
+                  <td>{{ item.variant.display_product }}</td>
+                  <td>
+                    {{ item.variant.sku }}                    
+                  </td>
+                  <!-- cost price -->
+                  <td>
+                    {% if item.cost_price %}
+                     {% gross item.cost_price %}
+                    {% endif %}   
+                  </td>
+                  <!-- sales price -->
+                  <td> 
+                  {% gross item.variant.get_price_per_item html=True %}
+                  </td>
+                  
+                  
+                  <td class="right-align">
+                    {{ item.quantity }}
+                  </td>
+                  <td>
+                    {{item.low_stock_threshold}}
+                  </td>
+                  <td class="right-align">
+                    {{ item.quantity_allocated }}
+                  </td>
+                  <td>
+                  <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        action <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu edit-dropdown">   
+                        <li><a onclick="return false;" data-href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}" class="edit-stock-Btn"><i class="icon-pencil7"></i> EDIT</a></li>
+                       
+                        <li>
+                          <a data-ta="#modal_delete_instance" data-title="Delete {{item.variant.sku}}?" data-href="{% url 'dashboard:single-stock-delete' product_pk=product.pk stock_pk=item.pk %}" data-tabname='?tab=stock'
+                         data-successurl="{% url 'dashboard:product-update' pk=product.pk  %}" data-name="{{ item.variant.sku }}" data-id="{{ item.pk }}"
+                       class="modal-trigger-delete"><i class="icon-trash" href="#modal_delete_instance" data-toggle="modal"></i> DELETE
+                       </a>
+                        </li>
+                       
+                        </ul>
+                    </div>
+                    
+                  </td>
+                </tr>
+              {% endfor %}           
+            {% else %}             
+                <tr>
+                  <td colspan="8">
+                    <span class="text-center alert alert-warning">
+                      {% trans "There is no stock for this product." context "Empty stock table message" %}
+                      
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            {% endif %}
+          </table>
+        </div>
+        <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}?tab=stock">
+      </form>
+    </div>
+    {% endif %}
+                    </div>
+                    <!-- end product stock -->
+                    <!-- IMAGES tAB -->
+                    {% if request.GET.tab == 'images'  %}                   
+                     <div class="tab-pane has-padding active" id="images-tab">
+                    {% else %}
+                      <div class="tab-pane has-padding" id="images-tab">            
+                    {% endif %}
+                    
+                     {% if product.pk %}
+                         <div id="images" class="">
+      <form action="{% url 'dashboard:product-images-upload' product_pk=product.pk %}" class="" id="product-image-form" novalidate>
+        <div class="dz-message"></div>
+        {% csrf_token %}
+        <input type="hidden" name="success_url" value="{% url 'dashboard:product-update' pk=product.pk %}?tab=images">
+        
+        <div class="row">
+          <div class="col-md-12">
+            <div class="col-md-4">
+            <div class="text-left" style="margin-bottom: 8px;">
+              <a class="btn btn-primary  waves-effect waves-light images-bt" id="images-bt" onclick="return false;" data-href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" title=""> Add Image 
+                 </a>
+            </div>
+
+          </div>         
+          
+          <div  class='col-md-8 hidden' id="myloader">
+            <div class="cs-loader mt-15">
+              <div class="cs-loader-inner text-primary">
+                <label> ●</label>
+                <label> ●</label>
+                <label> ●</label>
+                <label> ●</label>
+                <label> ●</label>
+                <label> ●</label>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div class="col-md-12" id="add-image-form-div"></div>
+          <br>
+          {% if images %}    
+            
+              {% for image in images %}
+              <div class="col-lg-3 col-sm-6">
+              <div class="thumbnail">
+                <div class="thumb">
+                  <img class="" 
+                             src="{{ image.image.crop.255x255 }}" 
+                             srcset="{{ image.image.crop.255x255 }} 1x, {{ image.image.crop.510x510 }} 2x"
+                             alt="">
+                  <div class="caption-overflow">
+                    <span>
+                      <a href="{{ image.image.crop.255x255 }}" data-popup="lightbox" class="btn border-white text-white btn-flat btn-icon btn-rounded"><i class="icon-plus3"></i></a>
+                      <a href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}" class="btn border-white text-white btn-flat btn-icon btn-rounded "><i class="icon-pencil7"></i></a>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="caption">
+                  <h6 class="no-margin-top text-semibold"> <a href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}" class="text-muted"><i class="icon-pencil pull-right"></i></a></h6>
+                  {% if image.alt %}
+                            {{ image.alt }}
+                          {% else %}
+                            <span class="">
+                              {% trans "No description" context "Image card text" %}
+                            </span>
+                          {% endif %}
+                <div class="card-action">
+                        <a class="btn btn-flat" href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=image.pk %}">
+                          {% trans "Edit" context "Dashboard edit action" %}
+                        </a>
+                        <a href="#modal_instance" class="btn btn-flat modal-trigger " data-title='Delete Image' data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=image.pk %}">
+                          {% trans "Delete" context "Dashboard delete action" %}
+                        </a>
+                      </div>
+                </div>
+              </div>
+            </div>
+               
+              {% endfor %}
+            
+        {% else %}
+          <p class="no-images">
+            {% trans "This product has no images yet." context "Empty image gallery message" %}
+          </p>
+        {% endif %}
+            {% if images|length > 4 %}
+        <div class="col-md-12">
+          <div class="text-right">
+            <a class="btn btn-primary  waves-effect waves-light images-bt" id="images-bt2" onclick="return false;" data-href="{% url 'dashboard:product-image-add' product_pk=product.pk %}" title=""> Add Image 
+               </a>
+          </div>
+          </div>
+            {% endif %}
+      </div>
+      </form>
+      <script type="application/template" id="template">
+        <li class='col s6 m3 product-gallery-item dz-preview dz-file-preview' data-id="{{ image.pk }}">
+          <div class="row">
+            <div class="card">
+              <div class="card-image product-gallery-item-image">
+                <img data-dz-thumbnail />
+              </div>
+              <div class="dz-progress">
+                <span class="dz-upload" data-dz-uploadprogress></span>
+              </div>
+              <div class="card-content">
+                <span class="product-gallery-item-title card-title black-text">
+                  <span class="grey-text">
+                    {% trans "No description" context "Empty image gallery message" %}
+                  </span>
+                </span>
+              </div>
+              <div class="sortable__drag-area"></div>
+              <div class="card-action">
+                <a class="card-action-edit" href="{% url 'dashboard:product-image-update' product_pk=product.pk img_pk=0 %}">
+                  {% trans "Edit" context "Dashboard edit action" %}
+                </a>
+                <a href="#base-modal" class="card-action-delete modal-trigger-custom"
+                data-href="{% url 'dashboard:product-image-delete' product_pk=product.pk img_pk=0 %}">
+                  {% trans "Delete" context "Dashboard delete action" %}
+                </a>
+              </div>
+            </div>
+          </div>
+        </li>
+      </script>
+    </div>
+    {% endif %}
+                     </div>
+                    <!-- END IMAGES TAB -->
+                    
+                    
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>                
+
+</div>
+<input type="hidden" class="pageUrls" data-attributes="{% url 'dashboard:attr_list_f32b' %}" data-variantdetail="{% url 'dashboard:have-variants' %}" data-addattrurl="{% url 'dashboard:product-attr-add' %}" data-addclassurlb="{% url 'dashboard:attr_list_f32d' %}" data-pk="{{product.pk}}" data-productdata="{% url 'dashboard:product-data' %}"  data-addclassurl="{% url 'dashboard:product-class-form32b' %}">
+ {% include "dashboard/includes/_modal_images.html"  %}
+ {% include "dashboard/includes/_modal_add_category.html"  %}
+ {% include "dashboard/includes/_modal_add_tax.html"  %} 
+ {% include "dashboard/includes/_modal_classesd.html"  %}
+ {% include "dashboard/includes/_modal_attribute_choice.html"  %}
+ {% include "dashboard/includes/_modal_type.html"  %}
+ {% include "dashboard/includes/_modal_classes.html"  %}
+ {% include "dashboard/includes/_modal_classesx.html"  %}
+ {% include "dashboard/includes/_modal_add_stocks.html"  %}
+ {% include "dashboard/includes/_modal_subcategory.html"  %}
+ {% include "dashboard/includes/_modal_delete_instance.html"  %}
+{% endblock %}
+
+ {% block custom_js %}
+
+ {% if not product.pk %}
+ <script type="text/javascript" src="{% static 'backend/js/tabs_toggle.js' %}"></script>
+ {% endif %}
+<script type="text/javascript" src="{% static 'backend/js/addProduct.js' %}"></script>
+
+  <script type="text/javascript" src="{% static 'backend/js/plugins/forms/styling/switch.min.js' %}"></script>
+   
+  <script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_multiselect.js' %}"></script>
+  <script type="text/javascript" src="{% static 'backend/js/pages/form_multiselect.js' %}"></script>
+  <script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_select.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'backend/js/core/libraries/jquery_ui/core.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/selectboxit.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/forms/styling/switchery.min.js' %}"></script>
+<script>
+
+$(document).ready(function(){
+     // Basic initialization
+    $('.multiselect').multiselect({
+        onChange: function() {
+            $.uniform.update();
+        }
+    });
+     // Default initialization
+    $(".styled, .multiselect-container input").uniform({
+        radioClass: 'choice'
+    });
+
+  });
+</script>
+                  <!-- additional js -->
+<script type="text/javascript" src="{% static 'backend/js/category.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/productclass.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'backend/js/productattribute.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/supplier.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/deleteModal.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/vue/vue.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/product/vue/product.js' %}"></script>
+<script type="text/javascript">
+ 
+  $( document ).ready(function() {
+
+   // Custom results color
+    $('.multiselect-select2').select2({
+        dropdownCssClass: 'border-primary',
+        containerCssClass: 'border-primary text-primary-700'
+    });
+
+    $(".styled, .multiselect-container input").uniform({
+        radioClass: 'choice'
+    });
+    $('.selectAttributesChoice').tokenize2({
+    placeholder: 'Add attribute choice(s) (eg. 1kg, 2kg)',
+    tokensAllowCustom:true,      
+    });
+    $('.selectVariantChoice').tokenize2({
+    placeholder: 'Add attribute choice(s) (eg. 1kg, 2kg)',
+    tokensAllowCustom:true,      
+    });
+    function addAttributePlusChoice(dynamicData,myUrl) 
+    {     
+       return $.ajax({
+          url: myUrl,
+          type: "post",
+          data: dynamicData
+        });
+    }
+    
+    var getAttributesChoice = $('.selectAttributesChoice');
+    var getVariantChoice = $('.selectVariantChoice');
+    var addAttributeChBtn = $('#addAttributeChBtn');
+    var addVariantChBtn = $('#addVariantChBtn');
+
+    addVariantChBtn.on('click',function(){
+      var newattrName = $('#newvName').val();      
+      var choices = getVariantChoice.val();
+      if(!newattrName)
+      {
+        alertUser('Variant name and choice required. Hit enter key','bg-danger','Variant name required');
+        return false;
+      }
+      if(!choices)
+      {
+        alertUser('Variant name and choice required','bg-danger','Variant name and choice required');
+        return false;
+      }
+      var dynamicData = {};
+      var myUrl = "{% url 'dashboard:add-new-attribute' %}";
+      dynamicData["attributes"] = JSON.stringify(choices);
+      dynamicData["name"] = newattrName;
+      dynamicData["csrfmiddlewaretoken"]  = jQuery("[name=csrfmiddlewaretoken]").val();
+      dynamicData['track'] = 'Add attribute plus choice';
+      addAttributePlusChoice(dynamicData,myUrl)
+      .done(function(data){
+        alertUser('Success');
+        console.log(data.value);
+        //$('.xgetAttributesD').append($('<option selected />').val(data.value).html(data.text));
+        //$('#xProductClass').find('tokens-container').append('<li class="token" data-value=data.value><a class="dismiss"></a><span>data.text</span></li>');
+        //$('.xgetAttributesD').tokenize2().dropdownAddItem(data.value,data.text);
+        //$('.xgetAttributesD').tokenize2().trigger('tokenize:tokens:add', [data.value, data.text, true]);
+
+
+        getAttributesChoice.val('');
+        choices = '';
+        newattrName = '';
+        dynamicData = {};
+        newattrName = '';
+         
+        getVariantChoice.parents('div').find('li.token').remove();
+        $(".selectVariantChoice option[data-type='custom']").remove();
+        $('#newvName').val('');        
+      })
+      .fail(function(){
+        alertUser('Variant already exist','bg-danger','Add unique variant name');
+      });
+    });
+
+    addAttributeChBtn.on('click',function(){
+      var newattrName = $('#newattrName').val();
+      var choices = getAttributesChoice.val();
+      if(!newattrName)
+      {
+        alertUser('Attribute name required','bg-danger','Attribute name required');
+        return false;
+      }
+      if(!choices)
+      {
+        alertUser('Attribute name required','bg-danger','Attribute name required');
+        return false;
+      }
+      var dynamicData = {};
+      var myUrl = "{% url 'dashboard:add-new-attribute' %}";
+      dynamicData["attributes"] = JSON.stringify(choices);
+      dynamicData["name"] = newattrName;
+      dynamicData["csrfmiddlewaretoken"]  = jQuery("[name=csrfmiddlewaretoken]").val();
+      dynamicData['track'] = 'Add attribute plus choice';
+      addAttributePlusChoice(dynamicData,myUrl)
+      .done(function(data){
+        alertUser('Success');
+        getAttributesChoice.val('');
+         
+         $(".selectAttributesChoice").parents('div').find('li.token').remove();
+         $('#newattrName').val('');
+      })
+      .fail(function(){
+        alertUser('Attribute already exist','bg-danger','Add unique attribute name');
+      });
+    });
+
+     // Default initialization
+    $(".styledxx, .multiselect-container input").uniform({
+        radioClass: 'choice'
+    });
+    $( "h5" ).addClass( "text-bold" );
+
+    $('.btn[data-toggle=modal]').on('click', function(){
+          var $btn = $(this);
+          var currentDialog = $btn.closest('.modal-dialog'),
+          targetDialog = $($btn.attr('data-target'));;
+          if (!currentDialog.length)
+            return;
+          targetDialog.data('previous-dialog', currentDialog);
+          currentDialog.addClass('aside');
+          var stackedDialogCount = $('.modal.in .modal-dialog.aside').length;
+          if (stackedDialogCount <= 5){
+            currentDialog.addClass('aside-' + stackedDialogCount);
+          }
+    });
+
+    $('.modal').on('hide.bs.modal', function(){
+          var $dialog = $(this);
+          var previousDialog = $dialog.data('previous-dialog');
+          if (previousDialog){
+            previousDialog.removeClass('aside');
+            $dialog.data('previous-dialog', undefined);
+          }
+    });
+  });
+  </script>
+<script type="text/javascript">
+
+ $.when( $.ready ).then(function() {
+  $('#id_categories').removeAttr('multiple');
+  $('#id_categories').selectpicker();
+  $('.select-variant').selectpicker();
+ });
+
+ {% if product.pk %}
+   
+   $.when( $.ready ).then(function() { 
+       // disable sub category
+
+       $('#id_product_class').prop('disabled', true);
+       $('#id_product_class').selectpicker('refresh');
+       $('#add-new-class').attr('disabled','disabled');
+       $('#add-new-class').attr('data-original-title','You cannot edit sub category once product is created! ');                    
+    });
+     //console.log("{{go}}");
+  
+  {% endif %}
+
+
+  $('#btntogglev').on('click',function(){
+    $('#toggleVariant').slideToggle();
+  });
+  $('#btntoggles').on('click',function(){
+    $('#toggleStock').slideToggle();
+  });
+    
+
+ function roundOff(val){
+  return Math.round(val * 100) / 100;
+ }
+ function getTax(){
+    // get tax value
+    {% url "dashboard:tax-add-ajax" as url %}
+    var url = "{{ url }}";
+    var tax_id = $('#id_product_tax').val();
+    var csrf_token = jQuery("[name=csrfmiddlewaretoken]").val();
+    var posting = $.post( url, {
+                          tax_id:tax_id,
+                          csrfmiddlewaretoken:csrf_token
+                      } );
+    posting.done(function( data ){
+      if(data.length > 3)
+      {
+        localStorage.setItem('tax', parseInt(0));
+      }else{
+       localStorage.setItem('tax', parseInt(data));
+      }
+      pricing()
+     });
+    return localStorage.getItem("tax");
+
+ }
+ getTax()
+ function pricing(){
+  // fetch tax from the server
+  var tax = localStorage.getItem("tax")
+  // calculate retail tax exclusive tax
+  var retail = $('#tabprice').val();
+  var retail_plus_tax = (parseInt(retail)*100)/(parseInt(tax)+100);
+  retail_plus_tax=roundOff(retail_plus_tax);
+
+  $('#retail_plus_tax').attr('value',retail_plus_tax);  
+  var tx = parseInt(retail)-parseInt(retail_plus_tax);
+
+  $('#retail_tax').attr('value',tx);
+
+  // calculate wholesale price exclusive tax
+  var wholesale = $('#id_wholesale_price').val();
+
+  var wholesale_plus_tax = (parseInt(wholesale)*100)/(parseInt(tax)+100);
+  wholesale_plus_tax=roundOff(wholesale_plus_tax);
+   $('#wholesale_plus_tax').attr('value',wholesale_plus_tax);
+   var wtx = parseInt(wholesale)-parseInt(wholesale_plus_tax);
+   $('#wholesale_tax').attr('value',wtx);
+  }
+  $("#tabprice").on("change keyup paste keydown", function(event) {
+      pricing();
+  });
+  $("body").on("change onbur keyup keydown", "#id_product_tax", function(event) {
+    getTax();
+    // calculate exclusive tax price values
+    pricing();
+  });
+  $("#id_wholesale_price").on("change keyup paste keydown", function(event) {
+    pricing();
+  });
+</script>
+  <script type="text/javascript" >
+
+    // Dynamic options
+    // Tax field
+
+    // Add options dynamically
+    $(".selectbox-dynamic-options").selectBoxIt({
+        autoWidth: false
+    });
+
+
+  $('body').on('click','#add-new-tax',function() {
+      var taxvalue = $( this ).val();
+      {% url "dashboard:tax-add-ajax" as url %}
+      var url = "{{ url }}";
+      var csrf_token = jQuery("[name=csrfmiddlewaretoken]").val();
+      var posting = $.post( url, {csrfmiddlewaretoken:csrf_token} );
+      // Put the results in a div
+      posting.done(function( data ) {
+        $("#add_tax_form" ).empty().append( data );
+         $('#modal_add_tax .modal-title').html('Add New Tax');
+        $('#modal_add_tax').modal();
+      });
+
+   });
+
+
+   function notify(msg) {
+          new PNotify({
+              text: msg,
+              addclass: 'bg-danger'
+          });
+      }
+  
+  $('#modal_add_tax_btn').on('click',function(){
+       refresh_tax();
+        var tax = $('#id_tax').val();
+        var tax_name = $('#id_tax_name').val();
+        
+        if(!$.isNumeric(tax)){
+          notify('Enter a valid tax');
+          return false;
+        }     
+
+        //** post form data using jquery
+        var url = "{% url "dashboard:tax-add-ajax" %}";
+        var csrf_token = jQuery("[name=csrfmiddlewaretoken]").val();
+        var posting = $.post( url, {
+                  tax:tax,
+                  tax_name:tax_name,
+                  csrfmiddlewaretoken:csrf_token
+                });
+        posting.done(function( data ) {
+            //if ($('#added').val() == 'added')
+            if(data)
+            {
+                $('#modal_add_tax').modal('hide');
+                refresh_tax();
+            }
+            else
+            {
+                $('#tax-form-error').removeClass('hidden');
+                notify('Error Adding Tax');
+            }
+
+        });
+  });
+
+  // end tax form
+     // Dropdown selectors
+    $('.pickadate-selectors').pickadate({
+        format: 'yyyy-dd-mm',
+        editable: true,
+        selectYears: true,
+        selectMonths: true,
+        formatSubmit: 'yyyy-dd-mm',
+
+    });
+
+    // Default initialization
+    $(".styled, .multiselect-container input").uniform({
+        radioClass: 'choice'
+    });
+
+    // Basic select
+    $('.bootstrap-select').selectpicker();
+
+  </script>
+  <script>
+
+  function getProductClass()
+  {
+    var pclass = $( "select[name*='product_class']").val();
+    localStorage.setItem('product_class', parseInt(pclass));
+    return parseInt(pclass);
+  }
+  getProductClass();
+  
+  // content locader
+  // content wait loader
+   function content_loader(val) {   
+    var block = $(val).parent();
+    
+        $(block).block({ 
+            message: '<i class="icon-spinner2 spinner"></i><br><span class="align-center">Please wait</span>',
+            overlayCSS: {
+                backgroundColor: '#fff',
+                opacity: 0.8,
+                cursor: 'wait',
+                'box-shadow': '0 0 0 1px #ddd'
+            },
+            css: {
+                border: 0,
+                padding: 0,
+                backgroundColor: 'none'
+            }
+        });
+   }   
+  // end content blocker
+
+  // refreshAttributes func
+  var checkSkuUrl = "{% url 'dashboard:have-variants' %}";
+  var hasVariantDiv = $('#hasVariantDiv');
+  var skuInput      = $('#id_variant-sku');
+  var priceInput    = $('#id_price');
+  var pricingDiv    = $('#pricingDiv');
+  skuInput.attr('placeholder','Enter Stock keeping unit');
+  var csrf_token = jQuery("[name=csrfmiddlewaretoken]").val();
+
+  function checkHasVaraints(class_pk){
+    var postingx = $.post(checkSkuUrl, 
+                         {class_pk:class_pk,
+                          csrfmiddlewaretoken:csrf_token,
+                          track:'checkHasVaraints'} ); 
+    postingx.done(function( data ) {    
+    if(parseInt(data['has_variants']) == 1){
+     console.log('has variants');
+     hasVariantDiv.addClass('hidden');
+     pricingDiv.addClass('hidden');
+     skuInput.removeAttr('required');
+     skuInput.removeAttr('aria-required');
+     skuInput.removeClass('validate');
+
+     // price requiered so check if its empty/else add 0
+     if(!priceInput.val()){ priceInput.val(0);}
+    }else{
+      console.log(data['has_variants']);
+      hasVariantDiv.removeClass('hidden');
+      pricingDiv.removeClass('hidden');
+      skuInput.attr('required','required');
+      skuInput.addClass('validate');
+      skuInput.val('_');
+
+    }
+   });
+    // postingx.fail(function(){
+    //   notify('Error refreshing sku division!','bg-danger');
+    // });
+  }
+  checkHasVaraints(getProductClass());
+  
+  function refreshAttributes() {  
+   {% url "dashboard:fetch-variants" as url %} 
+   var url = "{{ url }}";
+   var class_pk = getProductClass();  
+   var csrf_token = jQuery("[name=csrfmiddlewaretoken]").val();   
+   var posting = $.post( url, {class_pk:class_pk,csrfmiddlewaretoken:csrf_token} ); 
+   posting.done(function( data ) {    
+    $( "#div_attributes" ).empty().append( data ); 
+    checkHasVaraints(class_pk);
+   });
+  }  
+  // end refreshAttributes
+
+  
+  // end refreshsupplier
+  $('body').on('change', "select[name*='product_class']", function(){
+       var link = '{% url "dashboard:product-attr-add" %}';
+       var link = link+getProductClass()+'/';
+       $('#add-new-attribute').attr('data-href',link);
+       $('#link-pk').val(link);
+       {% url "dashboard:fetch-variants" as url %}
+       var url = "{{ url }}";
+       var class_pk = $( this ).val();
+       var csrf_token = jQuery("[name=csrfmiddlewaretoken]").val();
+       var posting = $.post( url,
+                           {class_pk:class_pk,csrfmiddlewaretoken:csrf_token} );
+         // Put the results in a div
+       posting.done(function( data ) {
+        checkHasVaraints(class_pk);
+        $( "#div_attributes" ).empty().append( data );
+       });
+
+    });
+
+  
+
+  $('.switch-actions').on('change', function() {
+    console.log('u clicked a check box');
+  let $btnChecked = $(this).parents('form').find('.btn-show-when-checked');
+  let $btnUnchecked = $(this).parents('form').find('.btn-show-when-unchecked');
+  if ($(this).parents('form').find('.switch-actions:checked').length) {
+    $btnChecked.show();
+    $btnUnchecked.hide();
+  } else {
+    $btnUnchecked.show();
+    $btnChecked.hide();
+  }
+});
+
+  $('#add-product-stock-form').validate({});
+
+
+$('#form-product').validate({
+    rules:{
+        name: {
+          required:true,
+          minlength:3
+        },
+        description: {
+          required:true,
+          minlength:3
+        },
+      }
+    });
+  </script>
+                  <script type="text/javascript">
+  $( document ).ready(function() {
+
+     //** remove a value
+     $('body').on( 'click', '.close-value', function(){
+        $(this).parent().parent().remove();
+     });
+
+     //** add a new value
+     $('#val-btn').on('click', function(e){
+         var value_input = '<div class="parent-value col-md-6">'+
+                            '<div class="col-md-10">'+
+                              '<input class="form-control pull-left the-value"/>'+
+                            '</div>'+
+                            '<div class="col-md-2">'+
+                            '<button type="button" class="close-value close pull-right">&times;</button>'+
+                            '</div>'+
+                          '</div>'
+         $('#attr-values').append(value_input);
+      });
+
+    // validate
+    $('#attr-form').validate({
+      onkeyup: function(element) {$(element).valid()},
+      rules:{
+          attribute: {
+            required:true
+          }
+      },
+      messages:{
+        attribute:{
+          required: "please provide an attribute name",
+        },
+      },
+      submitHandler: function() {
+
+          values = [];
+          $(".the-value").each(function() {
+              vl = $(this).val();
+              values.push(vl);
+          });
+        var f = document.getElementById('attr-form');
+        var formData = new FormData(f);
+        for (var i = 0; i < values.length; i++) {
+            formData.append('values', values[i]);
+        }
+        if (formData) {
+              $.ajax({
+                  url: "{% url 'dashboard:product-attribute-add-modal' %}",
+                  type: "POST",
+                  data: formData,
+                  processData: false,
+                  contentType: false,
+                  success:function(data){
+                     console.log(data);
+                     $('.new-attr').html(data);
+                     $('#test-modal').modal('hide');
+                     $.jGrowl('Attribute added successfully,', {
+                        header: 'Well done!',
+                        theme: 'bg-success'
+                     });
+                  },
+                  error:function(error){
+                    console.log(error);
+                    $.jGrowl('Change a few things up and try submitting again', {
+                        header: 'Oh snap!',
+                        theme: 'bg-danger'
+                    });
+                  }
+              });
+          }
+      }
+  });
+    // end validate
+  });
+
+</script>
+<script type="text/javascript">
+  $( document ).ready(function() {
+
+    // validate
+    $('#form-product-type').validate({
+      onkeyup: function(element) {$(element).valid()},
+    rules:{
+        pname: {
+          required:true,
+          minlength:3
+        },
+
+    },
+    messages:{
+      pname:{
+        required: "please provide a name",
+        minlength: "name must be atleast 6 characters long"
+      },
+    },
+    submitHandler: function() {
+      var f = document.getElementById('form-product-type');
+      var formData = new FormData(f);
+      formData.append('name',$('.pname').val());
+      for (var pair of formData.entries()) {
+          console.log(pair[0]+ ', ' + pair[1]);
+      }
+      if (formData) {
+            $.ajax({
+                url: "{% url 'dashboard:product-class-add' %}",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success:function(data){
+                   console.log(data);
+                   if(data == 'success'){
+                     $.jGrowl('Subcategory added successfully,', {
+                          header: 'Well done!',
+                          theme: 'bg-success'
+                      });
+                      $('#modal_type').modal('hide');
+                      //** update type select
+                      refresh_subcategories();
+                   }else{
+                       $.jGrowl('Change a few things up and try submitting again', {
+                          header: 'Oh snap!',
+                          theme: 'bg-danger'
+                      });
+                   }
+
+                },
+                error:function(error){
+                  console.log(error);
+                  $.jGrowl('Change a few things up and try submitting again', {
+                      header: 'Oh snap!',
+                      theme: 'bg-danger'
+                  });
+                }
+            });
+      }
+
+    }
+  });
+    // end validate
+  });
+
+</script>
+<script type="text/javascript">
+   // Checkboxes/radios (Uniform)
+    // ------------------------------
+
+    // Default initialization
+    /*$(".styled, .multiselect-container input").uniform({
+        radioClass: 'choice'
+    });*/
+
+  function refresh_subcategories(){
+    var url = "{% url 'dashboard:product-add' %}";
+    var posting = $.get( url, {'ajax_subcategory':'ajax_subcategory','sub_category':'sub_category'});
+    posting.done(function(data) {
+       $('.sub-refresh').replaceWith( data );
+    });
+  }
+
+  function refresh_suppliers(){
+    var url = "{% url 'dashboard:product-add' %}";
+    var posting = $.get( url, {'ajax_subcategory':'ajax_subcategory', 'supplier':'supplier'});
+    posting.done(function(data) {
+       $('.supplier-refresh').replaceWith( data );
+    });
+  }
+
+  function refresh_tax(){  
+    var url = "{% url 'dashboard:product-add' %}";
+    var posting = $.get( url, {'ajax_subcategory':'ajax_subcategory', 'tax':'tax'});
+    posting.done(function(data) {
+       $('.tax-refresh').replaceWith( data );
+    });
+  }
+
+  /*function refresh(){
+    //window.location.reload();
+    var url = "{% url 'dashboard:product-class-add' %}";
+    var posting = $.get( url, {});
+    posting.done(function(data) {
+       $('#refresh-content').empty().append( data );
+    });
+  }
+  $('#refresh_content').on('click', function(){
+    refresh();
+    window.location.reload();
+  });*/
+
+   $('#atb').on('click', function(){
+
+          var $btn = $(this);
+          var currentDialog = $btn.closest('.modal-dialog'),
+          targetDialog = $($btn.attr('data-target'));
+
+          if (!currentDialog.length)
+            return;
+          targetDialog.data('previous-dialog', currentDialog);
+          currentDialog.addClass('aside');
+          var stackedDialogCount = $('.modal.in .modal-dialog.aside').length;
+          if (stackedDialogCount <= 5){
+            currentDialog.addClass('aside-' + stackedDialogCount);
+          }
+        });
+</script>
+<script type="text/javascript">
+  $('#id_description').attr('required','required');
+</script>
+<script type="text/javascript" src="{% static 'backend/js/backend.js' %}"></script>
+
+<script type="text/javascript" src="{% static 'backend/js/plugins/tokenize/tokenize2.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/addSubCategoryModal.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/addAttributesModal.js' %}"></script>
+{% if product.pk %}
+<script type="text/javascript" src="{% static 'backend/js/plugins/media/fancybox.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/pages/gallery.js' %}"></script>
+  {% if go %}
+   <script type="text/javascript">
+   $.when( $.ready ).then(function() {     
+       $('.bordered-tab1').removeClass('active');
+       $('#bordered-tab1').removeClass('active');
+       //activate pricing tab
+       $('.bordered-tab2').addClass('active');
+       $('#bordered-tab2').addClass('active');
+
+       // disable sub category
+       $('#bordered-tab2').addClass('disable');              
+    });
+     //console.log("{{go}}");
+   </script>
+  {% endif %}
+{% endif %}
+
+ {% endblock %}

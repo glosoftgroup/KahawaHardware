@@ -1,0 +1,27 @@
+{
+    "count": 2,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": 2,
+            "name": "Alex",
+            "email": null,
+            "mobile": "+254829839238",
+            "loyalty_points": 0,
+            "redeemed_loyalty_points": 0,
+            "total_credit": 2231.84,
+            "cash_equivalency": 0
+        },
+        {
+            "id": 1,
+            "name": "Customer Name",
+            "email": null,
+            "mobile": "25499999000",
+            "loyalty_points": 0,
+            "redeemed_loyalty_points": 0,
+            "total_credit": 10000.0,
+            "cash_equivalency": 0
+        }
+    ]
+}

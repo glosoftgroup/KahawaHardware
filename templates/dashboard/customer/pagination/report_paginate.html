@@ -1,0 +1,50 @@
+{% load product_first_image from product_images %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load static %}
+{% load default_user_image %}
+
+{% if users %}
+  {% for user in users%}
+  <tr class='clickable-row' id="{{user.pk }}">
+    <td class="td" data-href="{% url 'dashboard:customer-detail' pk=user.pk %}">{{ forloop.counter }}</td>
+    
+    <td class="td" data-href="{% url 'dashboard:customer-detail' pk=user.pk %}">{{user.name}}</td>
+    <!-- mobile -->
+                        <td class="td" data-href="{% url 'dashboard:customer-detail' pk=user.pk %}">{{user.mobile}}</td>
+                        
+                        <!-- slaes -->
+                        <td>
+                          {% if user.get_sales %}
+                          {{ user.get_sales }}
+                          {% else %}
+                          --
+                          {% endif %}
+                          <div class="text-size-small text-muted">{% if user.customers.first.created %}
+                    Last sale {{user.customers.first.created|timesince}} ago
+                     {% endif %}</div>
+                        </td>
+                        
+                        
+                        <!-- redeemed loyalty points -->
+                        <!-- loyalty points -->
+                        <td class="td" data-href="{% url 'dashboard:customer-detail' pk=user.pk %}">
+                        {% if user.get_redeemed_loyalty_points %}
+                        {{ user.get_redeemed_loyalty_points }}
+                        {% else %}
+                        --
+                        {% endif %}
+                        <div class="text-size-small text-muted">
+                        {% if user.get_rem_perc %}
+                       {{user.get_rem_perc}}% average
+                        {% endif %}</div>
+                        </td>
+    <td>
+      {{user.get_total_discount}}
+    </td>    
+  </tr>
+  {% endfor %}
+ {% else %}
+  <tr><td colspan="8"><h2 class="text-center">No Customers available</h2></td></tr>
+ {% endif %}
+ <script type="text/javascript" src="{% static 'backend/js/customer/customer-listing.js' %}"></script>

@@ -1,0 +1,162 @@
+{% extends "dashboard/base.html" %}
+{% load staticfiles i18n %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load default_user_image %}
+
+{% block title %}
+  Customer
+{% endblock %}
+
+{% block breadcrumbs %}
+<li class="active"><a href="{% url 'dashboard:customers' %}">Customer</a></li>
+<li class="active"><a href="javascript:;">Edit Customer</a></li>
+{% endblock %}
+
+{% block menu_addCustomer_class %}active{% endblock %}
+ {% block custom_css %}
+   <style type="text/css">
+    label.error{
+      color: #FF5722;
+    }
+  </style>
+ {% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-md-12">
+    <div class="panel panel-flat">
+      <div class="panel-body">
+        <div class="tabbable">
+          <ul class="nav nav-tabs nav-tabs-highlight">
+            <li class="active" id="profile-tab"><a href="#profile" data-toggle="tab" class="legitRipple" aria-expanded="false">edit customer profile</a></li>            
+
+          </ul>
+
+          <div class="tab-content">
+
+            <div class="tab-pane animated fadeIn active" id="profile">
+              <form class="form" enctype="multipart/form-data" id="update-details" name="update-details">
+              {% csrf_token %}
+          <div class="row">           
+            <div class="col-md-8">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" class="form-control" name="name" id="name" placeholder="Name" value="{{ user.name}}">
+                  </div>
+                  
+                   <div class="form-group">
+                    <label for="exampleInputPassword1">National ID No:</label>
+                    <input type="text" class="form-control" name="nid" id="nid" placeholder="Id No" value="{{ user.nid}}">
+                   </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="mobile">Phone</label>
+                    <input type="text" class="form-control" name="mobile" data-mask="(+254)-999-999-999" id="mobile" placeholder="Mobile"
+                    {% if user.mobile %} value="{{ user.mobile}}" {% endif %}>
+                   </div>
+                   <div class="form-group">
+                      <label for="email">Email address</label>
+                      <input type="email" class="form-control" name="email" id="email" placeholder="Email"
+                      {% if user.email %} value="{{ user.email}}" {% endif %}>
+                   </div>               
+                   
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2">
+                       <div class="form-group">
+                      
+                     <div class="checkbox">
+                            <label>
+                              <input name="creditable" class="styled check" {% if user.creditable %}
+                              checked="checked" {% endif %} type="checkbox">
+                              Credit Worthy
+                            </label>
+                            <span id="glranted" class="ganted text-success"></span>
+                          </div>
+                        
+                    </div>
+                  </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12">
+             <div class="pull-right" style="margin-top:40px;">
+              <a href="{% url 'dashboard:customers' %}" class="btn btn-default waves-effect waves-light">Cancel</a>
+              <button class="btn btn-primary waves-effect waves-light" id="submit" type="submit">Update Customer <i class="icon-arrow-right14 position-right"></i></button>
+             </div>
+            </div>
+          </div>
+        </form>
+            </div>
+            
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock%}
+{% block custom_js %}
+<script type="text/javascript">
+
+/* update user details */
+  $('#update-details').validate({
+    rules:{
+        name: {
+          required:true,
+          minlength:3
+        },                
+        mobile:{
+          required:true,
+          //digits: true,
+          minlength: 6
+        }
+
+    },
+    messages:{
+      name:{
+        required: "please provide a name",
+        minlength: "name must be atleast 3 characters long"
+      },
+      
+    },
+    submitHandler: function() {         
+        var f = document.getElementById('update-details');
+        var formData = new FormData(f);        
+        if (formData) {
+              $.ajax({
+                  url: "{% url 'dashboard:customer-update' pk=user.pk %}",
+                  type: "POST",
+                  data: formData,
+                  processData: false,
+                  contentType: false,
+                  success:function(data){
+                     console.log(data);             
+
+                     $.jGrowl('Updated successfully', {
+                        header: 'Well done!',
+                        theme: 'bg-success'
+                     });
+                     window.location = "{% url 'dashboard:customers' %}";
+                  },
+                  error:function(error){
+                    console.log(error);
+                    $.jGrowl('Change a few things up and try submitting again', {
+                        header: 'Oh snap!',
+                        theme: 'bg-danger'
+                    });
+                  }
+              });
+          } 
+    }
+  });
+
+
+</script>
+{% endblock %}

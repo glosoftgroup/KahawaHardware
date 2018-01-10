@@ -1,0 +1,130 @@
+{% load prices_i18n %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+{% load attributes %}
+ <table class="table  datatable-header-footer">
+    {% if variants %}
+      <thead>
+     
+        <tr id="" class="bg-primary">
+          
+          <th>
+            {% trans "SKU" context "Product variant table header" %}
+          </th>
+          
+          {% for attribute in attributes %}
+            <th>
+              {{ attribute.name|capfirst }}
+            </th>
+          {% endfor %}                  
+          
+          <th class="right-align">
+            Retail Price
+          </th>
+          <th class="right-align">
+            Wholesale Price
+          </th>
+            <th>Minimum Price</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for variant in variants %}
+          <tr data-action-go="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" title="{% trans "Edit variant" context "Product variant table link title" %}">
+            
+            <td>
+              {{ variant.sku }}
+            </td>
+            
+            {% for attr_display in variant|attributes_values_with_empty:attributes %}
+              <td>
+                {{ attr_display }}
+              </td>
+            {% endfor %}
+           
+            <!-- retail price -->
+            <td class="right-align">
+      {% gross variant.get_price_per_item html=True %}
+            </td>
+            <!-- wholesale price -->
+            <td class="right-align">
+            {% if variant.get_wholesale_price_per_item %}
+      {% gross variant.get_wholesale_price_per_item html=True %}
+           {% endif %}
+            </td>
+             <!-- minimum price -->
+            <td class="right-align">
+            {% if variant.minimum_price %}
+            {% gross variant.minimum_price html=True %}
+           {% endif %}
+            </td>
+             <!-- actions -->
+                    <td class="text-center">
+                      <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        action <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu edit-dropdown">   
+                        <li><a onclick="return false;" class="editVariantBtn" data-pk="{{variant.pk}}" data-href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}"><i class="icon-pencil7"></i> EDIT</a></li>
+                       
+                        <li>
+                          <a data-ta="#modal_delete_instance" data-title="Delete {{variant}}?" data-href="{% url 'dashboard:single-variant-delete' product_pk=product.pk variant_pk=variant.pk %}" data-tabname='?tab=variants' 
+                         data-successurl="{% url 'dashboard:product-update' pk=product.pk  %}" data-name="{{ variant.name }}" data-id="{{ variant.pk }}"
+                       class="modal-trigger-delete"><i class="icon-trash" href="#modal_delete_instance" data-toggle="modal"></i> DELETE
+                       </a>
+                        </li>
+                       
+                        </ul>
+                    </div>
+                      
+                    </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    {% else %}
+        <tbody>
+          <tr>
+            <td>
+              <span class="alert alert-warning">
+                {% trans "There are no variants for this product" context "Empty product variant table message" %}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+    {% endif %}
+  </table>
+
+<script type="text/javascript" src="{% static 'backend/js/deleteModal.js' %}"></script>
+<script type="text/javascript">
+  /* edit variant script */
+$(function(){
+  var EditRefreshDiv = $('#div-edit-variant');
+  var editButton = $('.editVariantBtn');
+  var editvariantBtn = $('#editvariantBtn');
+  var url = '#';  
+
+  editButton.on('click',function(){
+    EditRefreshDiv.html('Processing form ...');
+    var pk = $(this).data('pk');
+    var url = $(this).data('href');
+    dynamicData = {};
+    dynamicData['template'] = 'edit_variant';    
+    
+    $('html, body').animate({
+     scrollTop: $('#div-edit-variant').offset().top
+    }, 1000);
+    addProductDetails(dynamicData,url,'get')
+    .done(function(data){      
+      EditRefreshDiv.html(data);
+    })
+    .fail(function(){
+      alertUser('failed to get edit form');
+    });    
+  
+  }); 
+
+});
+
+
+</script>

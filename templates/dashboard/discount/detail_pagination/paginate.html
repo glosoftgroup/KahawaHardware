@@ -1,0 +1,32 @@
+{% load product_first_image from product_images %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load static %}
+{% load product_first_image from product_images %}
+
+{% if product_results %}
+                       {% for product in product_results %}
+                        <tr data-title=" {{ product.name }} ">
+                          <td href="#modal_instance_lg" class="modal-trigger-ajax" data-href="{% url 'dashboard:product-update' pk=product.pk %}">{{ product.id }}</td>
+                          
+                           <!-- product name -->
+                          <td href="#modal_instance_lg" class="modal-trigger-ajax" data-href="{% url 'dashboard:product-update' pk=product.pk %}">{{ product.display_product }}</td>
+                          
+                          <!-- price -->
+                          <td href="#modal_instance_lg" class="modal-trigger-ajax" data-href="{% url 'dashboard:product-update' pk=product.pk %}">
+                          {% if product.price_override.gross %} {{ product.price_override.gross }}
+                          {% else %}
+                          --
+                          {% endif %} 
+                          </td>
+                          <!-- variants -->
+                          <td href="#modal_instance_lg" class="modal-trigger-ajax" data-href="{% url 'dashboard:product-update' pk=product.pk %}">
+                          {{ product.get_stock_quantity }}
+                          </td>
+                        </tr>
+                          {% endfor %}
+                      {% else %}
+                      <tr>
+                     <td colspan="6"><h2 class="text-center">No Products available <i class="icon-heart-broken2"></i></h2></td>
+                      </tr>
+                    {% endif %}

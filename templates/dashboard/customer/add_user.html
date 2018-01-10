@@ -1,0 +1,189 @@
+
+{% extends "dashboard/base.html" %}
+{% load staticfiles i18n %}
+{% load i18n %}
+{% load prices_i18n %}
+
+{% block title %}
+  {% trans "Customers" context "Dashboard customer list" %} - {{ block.super }}
+{% endblock %}
+{% block header_extra %}
+{% endblock %}
+{% block breadcrumbs %} 
+   <li>
+      <a href="{% url 'dashboard:customers' %}">
+      Customers
+      </a>
+    </li>
+    <li class="active">
+      Add customer
+    </li>
+{% endblock %}
+
+{% block menu_addCustomer_class %}active{% endblock %}
+ {% block custom_css %}
+   <style type="text/css">
+    label.error{
+      color: #FF5722;
+    }
+  </style>
+ {% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-md-12">
+    <div class="panel panel-flat">
+      
+
+      <div class="panel-body">
+        <div class="tabbable">
+          <ul class="nav nav-tabs nav-tabs-highlight">
+            <li class="active" id="profile-tab"><a href="#profile" data-toggle="tab" class="legitRipple" aria-expanded="false">add customer profile</a></li>
+          </ul>
+
+          <div class="tab-content">
+
+            <div class="tab-pane animated fadeIn active" id="profile">
+              <form class="form" enctype="multipart/form-data" id="user-details" name="user-details">
+                {% csrf_token %}
+                  <div class="row">
+                    <div class="col-md-">
+                   
+
+                    </div>
+                    <div class="col-md-8">
+                      <div class="row">
+                        <div class="col-md-6">
+                          <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" class="form-control" name="name" id="name" placeholder="Name">
+                          </div>
+                        
+                           <div class="form-group">
+                            <label for="exampleInputPassword1">National ID No:</label>
+                            <input type="text" class="form-control" name="nid" id="nid" placeholder="Id No">
+                           </div>
+                           
+                        </div>
+                        <div class="col-md-6">
+                          <div class="form-group">
+                            <label for="mobile">Phone</label>
+                            <input type="text" class="form-control" data-mask="(+254)-999-999-999" name="mobile" id="mobile" placeholder="Mobile">
+                           </div>
+                           <div class="form-group">
+                              <label for="email">Email address</label>
+                              <input type="email" class="form-control" name="email" id="email" placeholder="Email">
+                           </div>
+                          
+                           
+                        </div>
+                      </div>
+
+                     
+                    </div>
+                    <div class="col-md-2">
+                       <div class="form-group">
+                      
+                     <div class="checkbox">
+                            <label>
+                              <input name="creditable" class="styled check" type="checkbox">
+                              Credit Worthy
+                            </label>
+                            <span id="glranted" class="ganted text-success"></span>
+                          </div>
+                        
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-12">
+                     <div class="pull-right" style="margin-top:40px;">
+                      <a href="{% url 'dashboard:users' %}" class="btn btn-default waves-effect waves-light">Cancel</a>
+                      <button class="btn btn-primary waves-effect waves-light" id="submit" type="submit">Create User <i class="icon-arrow-right14 position-right"></i></button>
+                     </div>
+                    </div>
+                  </div>
+                </form>
+            </div>
+            
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock%}
+{% block custom_js %}
+  <script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_multiselect.js' %}"></script>
+
+ 
+  <script type="text/javascript" src="{% static 'backend/js/pages/form_multiselect.js' %}"></script>
+<script type="text/javascript">
+
+  $('#user-details').validate({
+    rules:{
+        name: {
+          required:true,
+          minlength:3
+        },                
+        mobile:{
+          required:true,          
+          minlength: 6
+        }
+
+    },
+    messages:{
+      name:{
+        required: "please provide a name",
+        minlength: "name must be atleast 3 characters long"
+      },
+      
+    },
+    submitHandler: function() {       
+      var raw_groups = $("#multiple :selected").map(function(){
+               return $(this).val();
+            }).get();
+           
+          var f = document.getElementById('user-details');
+          var formData = new FormData(f);         
+          
+          if (formData) {
+                $.ajax({
+                    url: "{% url 'dashboard:customer_process' %}",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success:function(data){
+                       console.log(data);
+                       $("#name").val('');
+                       $("#email").val('');
+                       $("#password").val('');
+                       $("#confirm_password").val('');
+                       $("#nid").val('');
+                       $("#mobile").val('');              
+
+                       $.jGrowl('Customer added successfully', {
+                          header: 'Well done!',
+                          theme: 'bg-success'
+                       });
+                       
+                      localStorage.setItem('user_id', data);
+                      $('.user_id').val(localStorage.getItem("user_id"));
+                      window.location = "{% url 'dashboard:customers'%}";
+                    },
+                    error:function(error){
+                      console.log(error);
+                      $.jGrowl('Change a few things up and try submitting again', {
+                          header: 'Oh snap!',
+                          theme: 'bg-danger'
+                      });
+                    }
+                });
+            } 
+      
+    }
+  });
+</script>
+{% endblock %}

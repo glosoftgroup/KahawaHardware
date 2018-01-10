@@ -1,0 +1,84 @@
+{% load staticfiles %}
+{% load product_first_image from product_images %}
+{% load i18n %}
+{% load prices_i18n %}
+ <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+ <html>
+     <head>
+         <title>Purchases Report</title>
+         <style type="text/css">
+             body {sans-serif; color: #384047;}
+             .header {font-family: 'Verdana';font-size: 15px;font-weight: 100;text-align: center;color: #007cae;}
+             .title {font-size: 16px;font-weight: 100;}
+             .header p{color:#384047;}
+
+             .img-circle{border-radius: 50%;}
+             table {ax-width: 960px; margin: 10px auto;}
+            tr{border-bottom:0.5px solid #ddd;border-right:0.5px solid #ddd;
+                border-left:0.5px solid #ddd;
+            }
+            td{border:none;}
+            th {
+                  font-weight: bold;
+                  background:#2196F3;
+                  color: #FFF;
+                  border:none;
+                  font-size:11px;
+                  vertical-align:middle;
+                }
+             .td{text-align: center;font-size:11px;}
+             tr{padding:5px;}
+             .img{width:50px;height:50px;}
+         </style>
+     </head>
+     <body>
+         <div class='wrapper'>
+             <div class='header'>
+                 <p style="margin-bottom:0px;"><img class="img" src="{{image}}" alt="Red dot" /></p>
+                 <p class='title' style="margin-top:2px;margin-bottom:0px;font-size:13px;"> PURCHASES REPORT
+                 {% if gid %}
+                     <p style="margin-bottom:0px;margin-top:2px;font-size:11px;">
+                        PURCHASE DATE: {{gid}}
+                 </p>{% endif %}
+                   <p style="margin-top:2px;font-size:11px;">{{today | date:'jS F Y'}}</p>
+                 </p>
+             </div>
+         <div>
+         <div class='details'>
+            <table repeat="1" class="table  table-hover datatable-header-footer" style="">
+                <thead>
+                  <tr>
+                     <th>Transaction Date</th>
+                      <th>Supplier Name <span style="font-size: 0.9em;">(contact)</span></th>
+                      <th>Item Name</th>
+                      <th>Unit Cost</th>
+                      <th>Quantity (unit)</th>
+                      <th>Total Purchase</th>
+                  </tr>
+                </thead>
+                <tbody id="tb">
+               {% if purchases %}
+                        {% for purchase in purchases %}
+                      <tr>
+                          <td class="td"> {{purchase.created}}</td>
+                          <!--<td>{{purchase.invoice_number}}</td>-->
+                          <td class="td">{{purchase.supplier}}</td>
+                          <td class="td">{{purchase.stock.variant.display_product}}</td>
+                          <td class="td"> {% if purchase.cost_price %}{{purchase.cost_price.gross}}{% else %} 0.00{% endif %}</td>
+                          <td class="td">{{purchase.quantity}}</td>
+                          <td class="td">{{purchase.get_total_cost}}</td>
+                      </tr>
+                      {% endfor %}
+                    {% else %}
+                     <tr><td colspan="6"><h2 class="text-center" style="text-align:center;">No Purchases Records</h2></td></tr>
+                    {% endif %}
+                  </tbody>
+           </table>
+         </div>
+
+
+             <div class="foot">
+             <p style="text-align: center;">Report Pulled by: {% if puller.email %}{{ puller.email }} {% else %} {{ puller.name }}{% endif %}</p>
+         </div>
+     </body>
+ </html>

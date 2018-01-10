@@ -1,0 +1,16 @@
+/*fixed table header styling*/
+.fixed{
+    top:40px;
+    position:fixed;
+    width:auto;
+    display:none;
+    border:none;
+    margin-top: 50px;
+    z-Index:1;
+  }
+  .scrollMore{
+    margin-top:600px;
+  }
+  .modal-trigger-ajax2 { cursor: pointer; }
+  .modal-trigger-ajax { cursor: pointer; }
+  .superscript{font-size: 0.7em;}

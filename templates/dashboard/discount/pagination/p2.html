@@ -1,0 +1,154 @@
+{% load i18n %}
+{% load prices_i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+      <!-- Header and footer fixed -->
+      <div class="panel panel-flat">
+        <div class="panel-body">
+        <div class="table-responsives">
+
+          <table class="table  table-hover datatable-header-footer" style="border-bottom:1px solid #ddd;"> 
+                <thead>
+                  <tr class="bg-primary">
+                  <th>
+                    {% trans "Name" context "Sale (discount) table header" %}
+                  </th>
+                  <th>
+                    {% trans "Discount" context "Sale (discount) table header" %}
+                  </th>
+                  <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="p-tb">           
+                    {% if sales %}
+                      {% for sale in sales %}
+                        <tr class="clickable-row" data-href="{% url 'dashboard:sale-update' pk=sale.pk %}">
+                          <td class='td'  data-href="{% url 'dashboard:sale-update' pk=sale.pk %}">
+                            {{ sale }}
+                          </td>
+                          <td class='td' data-href="{% url 'dashboard:sale-update' pk=sale.pk %}">
+                            {{ sale.value }}{{ sale.get_type_display }}
+                          </td>
+                          <!-- actions -->
+                      <td >
+                        <div class='btn-group'>
+                          <button class='btn dropdown-toggle' data-toggle='dropdown'>Action <i class='glyphicon glyphicon-caret-down'></i></button>
+                          <ul class='dropdown-menu pull-right'>
+                             <li><a href="{% url 'dashboard:discount-detail' pk=sale.pk %}"><i class='glyphicon glyphicon-eye-open'></i> DETAIL</a></li>
+                            <li><a  href="{% url 'dashboard:sale-update' pk=sale.pk %}"><i class='glyphicon glyphicon-edit'></i> EDIT</a></li>
+                            
+                            <li><a onclick="return false;" class="delete-discount" data-title="{{sale.name}}" data-href="{% url 'dashboard:sale-delete' pk=sale.pk %}" ><i class='glyphicon glyphicon-trash'></i> DELETE</a></li>
+                          </ul>
+                        </div>                     
+                      </td>
+                        </tr>
+                      {% endfor %}
+                    {% else %}
+                    <tr>
+                      <td colspan="3">
+                        <h2 class="text-center">
+                          {% trans "No Discount available" context "Empty sales table message" %}
+                        </h2>
+                      </td>
+                    </tr>
+                    {% endif %}
+                  </tbody>
+           </table>
+
+        </div>
+        </div>
+          {% if sales %}
+        <style type="text/css">
+           .pagination{margin-bottom: 0px;}
+         </style> 
+         <div class="row">   
+         <div class="col-md-12">               
+          <div class="col-md-4">
+           <div class="col-md-12">
+            <div class="col-md-6 mt-10">
+             <label>display list size</label>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                 <select class="bootstrap-select list-sz" style="display: none;" data-width="100%" tabindex="-98">
+                    <option value="0" selected>No:</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                  </select>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div class="col-md-4">
+           <div class="text-center bootpag-callback p2-pag" style="">
+             <div class="my-paginate"> 
+             <ul class="pagination bootpag pagination-flat pagination-sm" style="margin-bottom: 0px;"></ul>
+             </div>
+            </div>
+           </div>
+            <div class="col-md-4">
+             <div class="col-md-12">
+              <div class="pull-right pages-nav2">Page 1 of {{pn}}</div>
+             </div>
+            </div>
+          </div>
+         </div>                 
+         <input type="hidden" id="page_size" val="">
+          {% endif %}
+      </div>
+
+    <!-- Core Scripts - Include with every page -->
+    <script type="text/javascript" src="{% url 'javascript-catalog' %}"></script>
+      <script type="text/javascript" src="{% static 'backend/js/plugins/pagination/bootpag.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'backend/js/plugins/pagination/bs_pagination.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'backend/js/plugins/pagination/jquery.bootpag.js' %}"></script>
+ <script type="text/javascript">
+   $(document).ready(function(){
+        $('.p2-pag').bootpag({
+            total: parseInt('{{pn}}'),
+            maxVisible: 3,
+            firstLastUse: true,
+            first: 'First',
+            last: 'Last',       
+            wrapClass: 'pagination',
+            activeClass: 'active',
+            disabledClass: 'disabled',
+            nextClass: 'next',
+            prevClass: 'prev',
+            lastClass: 'last',
+            firstClass: 'first',
+            }).on("page", function(event, num){
+                $(".pages-nav2").html("Page " + num +" of "+'{{pn}}'); 
+                var gid = '{{gid}}';
+                if(gid == 0){
+                    $.get("{% url 'dashboard:discount_pagination' %}",{page:num, psize:'{{sz}}'},function(data){
+                      $('#p-tb').html(data);
+                    });
+                }else{
+                    $.get("{% url 'dashboard:discount_pagination' %}",{page:num, psize:'{{sz}}',gid:'{{gid}}'},function(data){
+                   $('#p-tb').html(data);
+                });
+                }
+
+        }).children('.pagination').addClass('pagination-flat pagination-sm')
+        $(".td").click(function() {
+             window.location = $(this).data("href");
+        });
+   });
+     //**@ display size select
+      $('.list-sz').selectpicker().on('change', function(){
+          var ts = $(this).val();
+          $.ajax({ url: "{% url 'dashboard:discount_pagination' %}",type: 'GET',data: {page:1, size:ts}, async:false,success: function(data){
+                $('#pagination-div').html(data);
+          }});
+      });
+   {% if sz %}
+   $.when( $.ready ).then(function() {     
+         $('.bootstrap-select').selectpicker();
+         $('.list-sz').selectpicker('val', ["{{sz}}"]);              
+      });
+  {% endif %}
+ </script>
+<script type="text/javascript" src="{% static 'backend/js/fixed_table_header.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/discount/delete-discount.js' %}"></script>

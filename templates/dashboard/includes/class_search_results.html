@@ -1,0 +1,61 @@
+{% if productClass_results %} 
+{% load i18n %}
+
+  
+      {% if productClass_results %}
+        
+          {% for pk, name, has_variants, product_attributes, variant_attributes in productClass_results %}
+           <tr>
+                      <!-- has variants   -->
+                      <td>
+                        <span class="text-bold text-strong"> {% trans "Variants" context "Dashboard variants" %}: </span>
+                        {% if has_variants %}
+                          {% trans "Yes" %}
+                        {% else %}
+                          {% trans "No" %}
+                        {% endif %}
+                      </td>
+                      <!-- name -->
+                      <td>{{ name }}</td> 
+                      <!-- variant attributes  -->
+                      <td>
+                        {% if variant_attributes %}
+                         <br/><span class="text-bold text-strong"> {% trans "Variant attributes" context "Product type item list text" %}:</span><br/> {{ variant_attributes|join:", " }}
+                        {% endif %}
+                      </td>
+                      <!-- product attributes -->
+                      <td>
+                        {% if product_attributes %}
+                       <span class="text-bold text-strong">{% trans "Product attributes" context "Product type item list text" %}:</span><br/> {{ product_attributes|join:", " }}
+                      {% endif %}
+                      </td>
+                      <!-- actions -->
+                      <td>
+                        <span class="text-primary"><a class="title" href="{% url 'dashboard:product-class-update' pk=pk %}"><i class='icon-pencil7'></i></a></span>
+                     <a href="#modal_instance" data-title='Delete {{ product_class }} Product type' data-href="{% url 'dashboard:product-class-delete' pk=pk %}" class="modal-trigger"><span class="text-danger"><i class="icon-trash position-left"></i> </span>  </a>
+                      </td>
+                    </tr>
+                    
+          {% endfor %}
+      
+       
+      {% else %}
+        <div class="not-found">
+          <p class="grey-text">
+            {% trans "No product types found." context "Empty product type list message" %}
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+   
+  
+{% else %}
+<tr>
+ <td colspan='5'>
+ <div class="alert-warning" style="padding: 12px"><h5 class="text-center">No result matches your search <i class="icon-heart-broken2"></i></h5></div>
+ </td>
+</tr>
+{% endif %}
+{% load static %}
+ <script type="text/javascript" src="{% static 'backend/js/backend.js' %}"></script>

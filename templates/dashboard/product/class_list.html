@@ -1,0 +1,165 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+
+{% block title %}
+  {% trans "Product types" context "Dashboard product types list" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-products{% endblock %}
+
+{% block menu_product_classes_class %}active{% endblock %}
+
+{% block header_extra %}
+   <!-- search field -->
+    
+    <!-- end search -->
+    <li>&nbsp;&nbsp;</li>
+<li>              
+    <a href="{% url 'dashboard:product-class-add' %}" class="" style="box-shadow: 0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.18);"><i class="icon-plus3 position-left"></i> Add product Type</a>
+</li>
+  
+{% endblock %}
+
+{% block breadcrumbs %}
+ 
+    <li class="active">
+      {% trans "Product types" context "Dashboard product types list" %}
+    </li>
+ 
+{% endblock %}
+
+{% block menu_catalogue_class %} active{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col s12 " >
+      {% if product_classes %}
+      <div class="row">
+      <!-- search -->
+      <div class="col-md-12">
+      <div class="panel panel-flat">
+        <div class="panel-heading">      
+          <div class="heading-elements">
+            <ul class="icons-list">              
+              <li><a data-action="collapse"></a></li>       
+              <li><a data-action="close"></a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="panel-body">
+            <div class="col-md-6">
+             {% url "dashboard:search-type" as url %}
+    {% include "dashboard/includes/_search_filter.html" with url=url  %}
+            </div>
+            <!--  -->
+            <div class="col-md-3">             
+              <div class="form-group">
+                {% if perms.userprofile.add_user %}
+                   <a href="{% url 'dashboard:product-class-add' %}" class="btn-block btn-primary btn-lg">Add Product type</a>
+                {% endif %}
+              </div>
+            </div> 
+        </div>
+      </div>
+   </div>
+      <!-- end search -->
+      </div>
+      <div class="panel">
+       <table class="table table-striped table-hover fixed_headers">          <!-- Header and footer fixed -->
+                  <thead>         
+                    <tr class="bg-primary"> 
+                      <th>#</th>  
+                      <th>Has varaints</th>   
+                      <th>Name</th>    
+                      <th>Variant attribute</th>   
+                      <th>Product attributes</th>       
+                      <th class="text-center">Options</th>    
+                    </tr>   
+                  </thead>                     
+                  <tbody id='content-search'>
+                   {% for pk, name, has_variants, product_attributes, variant_attributes in product_classes %}
+                    <tr>
+                      <td>#{{ forloop.counter }}</td>
+                      <!-- has variants   -->
+                      <td>
+                        
+                        {% if has_variants %}
+                          {% trans "Yes" %}
+                        {% else %}
+                          {% trans "No" %}
+                        {% endif %}
+                      </td>
+                      <!-- name -->
+                      <td>{{ name }}</td> 
+                      <!-- variant attributes  -->
+                      <td>
+                        {% if variant_attributes %}
+                         <br/>{{ variant_attributes|join:", " }}
+                        {% endif %}
+                      </td>
+                      <!-- product attributes -->
+                      <td>
+                        {% if product_attributes %}
+                       {{ product_attributes|join:", " }}
+                      {% endif %}
+                      </td>
+                      <!-- actions -->
+                      <td>
+
+                        <a class="btn btn-default btn-sm legitRipple" href="{% url 'dashboard:product-class-update' pk=pk %}"><i class="icon-pencil7"></i></a>
+                     
+                     <a href="#modal_instance" data-title='Delete {{ product_class }} Product type' data-href="{% url 'dashboard:product-class-delete' pk=pk %}" class="modal-trigger"><span class="text-danger"><i class="icon-trash position-left"></i> </span>  </a>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                  </table>
+                  </div>
+        
+        
+      {% else %}
+        <div class="not-found">
+          <p class="grey-text">
+            {% trans "No product types found." context "Empty product type list message" %}
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  <div id="modal-product-class" class="modal">
+    <div class="modal-content">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="row">
+          {{ form|materializecss }}
+        </div>
+        <div class="row">
+          <div class="col s12">
+            <button class="btn" type="submit">
+              {% trans "Create new" context "Dashboard create new action"  %}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% include "dashboard/includes/_modal.html"  %}
+{% endblock %}
+{% block custom_js %}
+<script type="text/javascript">
+  $(document).ready(function() {
+    var maxHeight = 0;
+    $(".equalize").each(function() {
+        if ($(this).height() > maxHeight) {
+            maxHeight = $(this).height();
+        }
+    });
+    $(".equalize").height(maxHeight);
+});
+
+</script>
+<script type="text/javascript" src="{% static 'backend/js/backend.js' %}"></script>
+{% endblock %}

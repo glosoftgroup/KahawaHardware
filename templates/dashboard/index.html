@@ -1,0 +1,721 @@
+{% extends "dashboard/base.html" %}
+{% load staticfiles i18n %}
+{% load i18n %}
+{% load prices_i18n %}
+
+{% block title %}
+  {{ block.super }}
+{% endblock %}
+{% block breadcrumbs %}
+    <li class="active"><a href="{% url 'dashboard:index' %}">Dashboard</a></li>
+{% endblock %}
+{% block custom_css %}
+<link href="{% static 'backend/js/plugins/pickers/bootstrap_datepicker/css/bootstrap-datepicker.min.css' %}" rel="stylesheet" type="text/css">
+<style>
+  table tr .ctd{padding: 8px 10px !important;}
+  .table{border-bottom:1px solid #ccc}
+  .datepicker table tr td span {
+      padding:1px !important;
+    }
+    .datepicker table tr td span.active.active{
+       background-color:#1E88E5 !important;
+    }
+</style>
+{% endblock %}
+{% block content %}
+          <!-- Quick stats boxes -->
+            <div class="row animated fadeIn" style="position:relative;z-index:993">
+                <div class="col-md-12">
+                  <div class="panel panel-flat">
+
+                    <div class="panel-body search-panel">
+                        <div class="col-md-12">
+                            <div class="col-md-2">
+                         <label>Period:</label>
+                          <div class="form-group">
+                             <select class="bootstrap-select period-sz" style="display: none;" data-width="100%" tabindex="-98">
+                                 <option value="month">Monthly</option>
+                                <option value="quarter">Quarterly</option>
+                                <option value="year">Yearly</option>
+                              </select>
+                          </div>
+                        </div>
+                        <div class="col-md-3">
+                          <label>Ending Month:</label>
+                          <div class="form-group">
+                            <div class="input-group">
+                              <input class="form-control date-month" type="text" placeholder="mm/yyyy">
+                                <input type="hidden" class="hidden-year">
+                                <input type="hidden" class="hidden-month">
+                                <input type="hidden" class="hidden-date">
+                              <span class="input-group-addon"><i class="icon-calendar22"></i></span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-2">
+                         <label style="visibility:hidden;">Export</label>
+                          <button class="btn btn-primary btn-block rangeBtn">SEARCH</button>
+                        </div>
+                    </div>
+                  </div>
+               </div>
+               </div>
+            </div>
+<div id="pagination-div">
+          <div class="row animated fadeIn">
+            <div class="col-lg-3">
+              <div class="panel bg-indigo-300">
+                <div class="panel-body">
+                    <div class="col-md-6">
+                        <div class="icon-object border-white-400 text-white-400"><i class="icon-reading"></i></div>
+                    </div>
+                    <div class="col-md-6" style="vertical-align:middle;">
+                        <h2 class="no-margin">{% if no_of_customers %} {{no_of_customers}} {% else %} 0 {% endif %}</h2>
+                        <h6>Customers Visited</h6>
+                    </div>
+
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-3">
+             <div class="panel bg-pink-400">
+                <div class="panel-body">
+                    <div class="col-md-6">
+                        <div class="icon-object border-white-400 text-white-400"><i class="icon-coins"></i></div>
+                    </div>
+
+                    <div class="col-md-6" style="vertical-align:middle;">
+                        <h4 class="no-margin">KShs.
+                              {% if date_total_sales %}
+                                {{date_total_sales}}
+                              {% else %}
+                                0.00
+                              {% endif %}
+                          </h4>
+                        <h6>Total Sales</h6>
+                    </div>
+                </div>
+                <div id="server-load"></div>
+              </div>
+            </div>
+
+            <div class="col-lg-3">
+              <div class="panel bg-slate">
+                <div class="panel-body">
+                    <div class="col-md-12" style="vertical-align:middle;">
+                      <div class="col-md-12">
+                          {% if highest_item %}
+                            {% for h in highest_item %}
+                                <h5 class="no-margin">Highest Product Sold</h5>
+                          <h6 class="no-margin">KShs. {{h.total_cost__sum}} - ({{h.quantity__sum}}
+                                    {% if h.quantity__sum is 1 %} item {% else %} items {% endif %})</h6>
+                          Highest Product Sold <br/>
+                                  <span>{{h.product_name}}
+                            {% endfor %}
+                          {% else %}
+                               <h5 class="no-margin">Highest Product Sold</h5>
+                                KShs. 0.00
+                          {% endif %}
+                          </span>
+                      </div>
+                    </div>
+                </div>
+            </div>
+          </div>
+          <div class="col-lg-3">
+              <div class="panel bg-slate">
+                <div class="panel-body">
+                    <div class="col-md-12" style="vertical-align:middle;">
+                      <div class="col-md-12">
+                          {% if lowest_item %}
+                            {% for h in lowest_item %}
+                                <h5 class="no-margin">Lowest Product Sold</h5>
+                                <h6 class="no-margin">KShs. {{h.total_cost__sum}} - ({{h.quantity__sum}}
+                                    {% if h.quantity__sum is 1%} item {% else %} items {% endif %})</h6>
+                          Lowest Product Sold <br/>
+                                  <span>{{h.product_name}}
+                            {% endfor %}
+                          {% else %}
+                                <h5 class="no-margin">Lowest Product Sold</h5>
+                                KShs. 0.00
+                          {% endif %}
+                          </span>
+                      </div>
+                    </div>
+                </div>
+             </div>
+          </div>
+          <!-- /quick stats boxes -->
+      </div>
+      <div class="row">
+      <!-- item chart-->
+      {% if sales_by_item %}
+        <div class="col-md-12">
+            <div class="panel panel-flat" id="itemdiv">
+              <div class="panel-heading">
+                  <h6 class="panel-title" style="text-align:center;">Top 5 Items in last sales</h6>
+                  <div class="heading-elements">
+                    <ul class="icons-list">
+                      <li><a data-action="collapse"></a></li>
+                      <li><a data-action="reload"></a></li>
+                      <li><a data-action="close"></a></li>
+                    </ul>
+                  </div>
+                <a class="heading-elements-toggle"><i class="icon-more"></i></a>
+              </div>
+              <div class="panel-body">
+                <div class="col-md-6">
+                   <div id="itemChartContainer" style="width:100%; height:320px;"></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-md-12">
+                             <div class="data-table-container">
+                                <table class="table bordered highlight responsive data-table">
+                                  <tbody>
+                                  {% if sales_by_item %}
+                                   {% for sales in sales_by_item %}
+                                      <tr data-action-go="">
+                                        <td class="ctd" style="padding:8px 10px;" data-href="{{sales.product_name}}">
+                                          <div class="sqaure" style="width: 10px;height: 10px;border-radius: 50%;background-color: {{sales.color}};">
+                                          </div>
+                                        </td>
+                                        <td class="ctd" style="padding:8px 10px;" data-href="{{sales.product_category}}">
+                                            {{forloop.counter }}. {{sales.product_name}}
+                                        </td>
+                                          <td class="td" data-href="{{sales.product_name}}">
+                                             <div>{{sales.quantity__sum}}<span style="font-size: 0.8em;"> ({% if sales.quantity__sum is 1%} item {% else %} items {% endif %} )</span></div>
+                                        </td>
+                                        <td class="ctd" style="padding:8px 10px;" data-href="{{sales.product_category}}">
+                                            <div><span style="font-size: 0.7em;">Ksh.</span>{{sales.total_cost__sum}}</div>
+                                        </td>
+                                      </tr>
+                                      {% endfor %}
+                                    {% endif %}
+                                  </tbody>
+                                </table>
+                              </div>
+                        </div>
+                    </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+          {% else %}
+
+             <div class="col-md-12">
+              <div class="panel bg-info">
+                <div class="panel-heading">
+                    <h4 class="panel-title" style="text-align:center;">No Items Sold Yet</h4>
+                    <div class="heading-elements">
+                      <ul class="icons-list">
+                        <li><a data-action="close"></a></li>
+                      </ul>
+                    </div>
+                </div>
+             </div>
+             </div>
+         {% endif %}
+        <!-- end of item chart-->
+      </div>
+      
+      <!-- category chart -->
+      <div class="row">
+      {% if sales_by_category %}
+        <div class="col-md-12">
+            <div class="panel panel-flat" id="itemdiv">
+              <div class="panel-heading">
+                  <h6 class="panel-title" style="text-align:center;">Top 5 Categories in last sales</h6>
+                  <div class="heading-elements">
+                    <ul class="icons-list">
+                      <li><a data-action="collapse"></a></li>
+                      <li><a data-action="reload"></a></li>
+                      <li><a data-action="close"></a></li>
+                    </ul>
+                  </div>
+                <a class="heading-elements-toggle"><i class="icon-more"></i></a>
+              </div>
+              <div class="panel-body">
+                <div class="col-md-6">
+                   <div id="categoryChartContainer" style="width:100%; height:320px;"></div>
+                </div>
+                <div class="col-md-6">
+                  <div class="row">
+                      <div class="col-md-12">
+                           <div class="data-table-containers">
+                              <table class="table bordered highlight responsive data-table">
+                                <tbody>
+                                {% if sales_by_category %}
+                                 {% for sales in sales_by_category %}
+                                    <tr data-action-go="">
+                                      <td class="ctd" style="padding:8px 10px;" data-href="{{sales.product_category}}">
+                                        <div class="sqaure" style="width: 10px;height: 10px;border-radius: 50%;background-color: {{sales.color}};">
+                                        </div>
+                                      </td>
+                                      <td class="ctd" style="padding:8px 10px;" data-href="{{sales.product_category}}">
+                                          {{forloop.counter }}.  {{sales.product_category}}
+                                      </td>
+                                        <td class="td" data-href="{{sales.product_name}}">
+                                             <div>{{sales.quantity__sum}}<span style="font-size: 0.8em;"> ({% if sales.quantity__sum is 1%} item {% else %} items {% endif %} )</span></div>
+                                        </td>
+                                      <td class="ctd" style="padding:8px 10px;" data-href="{{sales.product_category}}">
+                                           <div><span style="font-size: 0.7em;">Ksh.</span>{{sales.total_cost__sum}} ({{ sales.percentage }}%)</div>
+                                      </td>
+                                    </tr>
+                                    {% endfor %}
+                                  {% endif %}
+
+                                </tbody>
+                              </table>
+                            </div>
+                      </div>
+                  </div>
+
+        </div>
+              </div>
+            </div>
+          </div>
+         {% else %}
+
+             <div class="col-md-12">
+              <div class="panel bg-info">
+                <div class="panel-heading">
+                    <h4 class="panel-title" style="text-align:center;">No Categories Sold Yet</h4>
+                    <div class="heading-elements">
+                      <ul class="icons-list">
+                        <li><a data-action="close"></a></li>
+                      </ul>
+                    </div>
+                </div>
+             </div>
+             </div>
+         {% endif %}
+        
+      </div>
+      <!-- end of category chart-->
+
+</div><!-- paginatio div-->
+{% if low_stock %}
+  <div class="row">
+    <div class="col-md-12">
+      <div class="panel panel-flat">
+        <div class="panel-heading">
+          <h6 class="panel-title">{% trans "Products with low stock" context "Dashboard homepage table title" %}</h6>
+          <div class="heading-elements">
+            <ul class="icons-list">
+              <li><a data-action="collapse"></a></li>
+              <li><a data-action="reload"></a></li>
+              <li><a data-action="close"></a></li>
+            </ul>
+          </div>
+        <a class="heading-elements-toggle"><i class="icon-more"></i></a></div>
+
+        <div class="panel-body">
+
+            <div class="card">
+
+              {% if low_stock %}
+                <div class="data-table-container">
+                  <table class="table bordered highlight responsive data-tables" style="border:1px solid #ccc">
+                    <thead>
+                      <tr class="bg-primary">
+                        <th>
+                          {% trans "Product name" context "Low stock product list" %}
+                        </th>
+                        <th class="right-align">
+                          {% trans "Stock left" context "Low stock product list" %}
+                        </th>
+                        <th> Low stock Threshold</th>
+                      </tr>
+                    </thead>
+                    <tbody id="p-tb">
+                      {% for product in low_stock %}
+                        <tr data-action-go="{% url 'dashboard:product-update' pk=product.pk %}#stock">
+                          <td>
+                            {{ product.variant.display_product }}
+                          </td>
+                          <td class="right-align">
+                            {{ product.quantity }}
+                          </td>
+                          <td class="right-align">
+                            {{ product.low_stock_threshold }}
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                <div class="my-paginate" style="margin-top:20px;">
+
+         <div class="row">
+         <div class="col-md-12">
+          <div class="col-md-4" style="visibility:hidden">
+           <div class="col-md-12">
+            <div class="col-md-6 mt-10">
+             <label>display list size</label>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                 <select class="bootstrap-select list-sz" style="display: none;" data-width="100%" tabindex="-98">
+                    <option value="0" selected>No:</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                  </select>
+              </div>
+            </div>
+          </div>
+          </div>
+          <div class="col-md-4">
+           <div class="text-center bootpag-callback p2-pag" style="">
+             <div class="my-paginate">
+             <ul class="pagination bootpag pagination-flat pagination-sm" style="margin-bottom: 0px;"></ul>
+             </div>
+            </div>
+           </div>
+            <div class="col-md-4">
+             <div class="col-md-12">
+              <div class="pull-right pages-nav2">Page 1 of {{pn}}</div>
+             </div>
+            </div>
+          </div>
+         </div>
+         <input type="hidden" id="page_size" val="">
+              </div>
+              {% else %}
+                <div class="card-content card-content--no-data not-found">
+                  <p class="grey-text">
+                    {% trans "No products are low in stock." context "Empty low stock table message" %}
+                  </p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+    </div>
+  </div>
+{% else %}
+<div class="row">
+     <div class="col-md-12">
+      <div class="panel bg-info">
+        <div class="panel-heading">
+            <h4 class="panel-title" style="text-align:center;">No products are low in stock</h4>
+            <div class="heading-elements">
+              <ul class="icons-list">
+                <li><a data-action="close"></a></li>
+              </ul>
+            </div>
+        </div>
+     </div>
+     </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block custom_js %}
+<script type="text/javascript" src="{% static 'backend/js/plugins/pagination/bootpag.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'backend/js/plugins/pagination/bs_pagination.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'backend/js/plugins/pagination/jquery.bootpag.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/pickers/bootstrap_datepicker/js/bootstrap-datepicker.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_select.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/ui/Highcharts-5.0.14/code/highcharts.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/ui/Highcharts-5.0.14/code/modules/exporting.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/ui/Highcharts-5.0.14/code/modules/drilldown.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/ui/chart.js/utils.js' %}"></script>
+<script type="text/javascript">
+var url = '{% url 'dashboard:index' %}';
+    $('.period-sz').selectpicker({});
+
+$('.date-month').datepicker({
+    format: "MM/yyyy",
+    autoclose: true,
+    startDate: '{{startMonth}}/{{startYear}}',
+    endDate: 'now',
+    minViewMode: "months"})
+    .on('changeDate', function(e) {
+        var month = e.date.getMonth()+1;
+        var year = e.date.getFullYear();
+        $('.hidden-year').val(year);
+        $('.hidden-month').val(month);
+    });
+
+$('.rangeBtn').on('click', function(){
+    var period = $('.period-sz').find(":selected").val();
+    var m = $('.hidden-month').val();
+    var y = $('.hidden-year').val();
+    if($('.date-month').val()){
+        $.get(url,{month:m, year:y, period:period}, function(data){
+               $('#pagination-div').html(data);
+        });
+    }else{
+        $.jGrowl('Please select the end month', {
+          header: 'Oops! Empty fields',
+          theme: 'bg-danger'
+        });
+    }
+});
+
+
+$('.p2-pag').bootpag({
+    total: parseInt('{{pn}}'),
+    maxVisible: 3,
+    leaps: true,
+    firstLastUse: true,
+    first: 'First',
+    last: 'Last',
+    wrapClass: 'pagination',
+    activeClass: 'active',
+    disabledClass: 'disabled',
+    nextClass: 'next',
+    prevClass: 'prev',
+    lastClass: 'last',
+    firstClass: 'first',
+        }).on("page", function(event, num){
+            $(".pages-nav2").html("Page " + num +" of "+'{{pn}}');
+            var gid = '{{gid}}';
+            if(gid == 0){
+                $.get("{% url 'dashboard:products_reorder_paginate' %}",{page:num, psize:'{{sz}}'},function(data){
+                  $('#p-tb').html(data);
+                  console.log('without gid '+data);
+                });
+            }
+    }).children('.pagination').addClass('pagination-flat pagination-sm')
+
+// Create the chart
+Highcharts.chart('itemChartContainer', {
+    chart: {
+        type: 'pie'
+    },
+    title: {
+        text: 'Top 5 Sales Items',
+        verticalAlign: 'bottom',
+        style:{"display":"none"}
+    },
+    xAxis: {
+        type: 'category',
+        labels: { enabled:false }
+    },
+    yAxis: {
+        title: {
+            text: 'Sales Amount in KShs.'
+        }
+
+    },
+    legend: {
+        enabled: false
+    },
+    credits: {
+			enabled: false
+    },
+    exporting: {
+        enabled: true
+    },
+    plotOptions: {
+        series: {
+            borderWidth: 0,
+            dataLabels: {
+                enabled: true,
+                format: '{point.p:.2f}%'
+            }
+        }
+    },
+
+    tooltip: {
+        headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+        pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>KShs. {point.yy:.2f}</b><br/>'
+    },
+
+    series: [{
+        name: 'Items',
+        colorByPoint: true,
+        size: 250,
+        innerSize: 120,
+        data: [{% for d in sales_by_item %}{ name:'{% if d.product_name %}{{d.product_name }}{% else %}None{% endif %}', p:{% if d.percentage %}{{d.percentage}}{% else %}0{% endif %} ,y:{% if d.percentage %}{{d.percentage}}{% else %}0{% endif %}, yy:{% if d.total_cost__sum %}{{d.total_cost__sum}}{% else %}0{% endif %}, color:'{{d.color}}', drilldown:'{% if d.product_name %}{{d.product_name }}{% else %}None{% endif %}' }, {% endfor %}]
+    }],
+    drilldown: {
+        series: [{
+            name: 'Microsoft Internet Explorer',
+            id: 'Microsoft Internet Explorer',
+            data: [
+                [
+                    'v11.0',
+                    24.13
+                ],
+                [
+                    'v8.0',
+                    17.2
+                ]
+            ]
+        }, {
+            name: 'Chrome',
+            id: 'Chrome',
+            data: [
+                [
+                    'v40.0',
+                    5
+                ],
+                [
+                    'v41.0',
+                    4.32
+                ]
+            ]
+        }, {
+            name: 'Firefox',
+            id: 'Firefox',
+            data: [
+                [
+                    'v35',
+                    2.76
+                ],
+                [
+                    'v36',
+                    2.32
+                ]
+            ]
+        }, {
+            name: 'Safari',
+            id: 'Safari',
+            data: [
+                [
+                    'v7.0',
+                    0.26
+                ],
+                [
+                    'v6.2',
+                    0.17
+                ]
+            ]
+        }, {
+            name: 'Opera',
+            id: 'Opera',
+            data: [
+                [
+                    'v12.x',
+                    0.34
+                ]
+            ]
+        }]
+    }
+});
+
+Highcharts.chart('categoryChartContainer', {
+    chart: {
+        type: 'pie'
+    },
+    title: {
+        text: 'Top 5 Sales Categories',
+        verticalAlign: 'bottom',
+        style:{"display":"none"}
+    },
+    xAxis: {
+        type: 'category',
+        labels: { enabled:false }
+    },
+    yAxis: {
+        title: {
+            text: 'Sales Amount in KShs.'
+        }
+
+    },
+    legend: {
+        enabled: false
+    },
+    credits: {
+			enabled: false
+    },
+    exporting: {
+        enabled: true
+    },
+    plotOptions: {
+        series: {
+            borderWidth: 0,
+            dataLabels: {
+                enabled: true,
+                format: '{point.p:.2f}%',
+                fontColor:'#8cc414'
+            }
+        }
+    },
+
+    tooltip: {
+        headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
+        pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>KShs. {point.yy:.2f}</b><br/>'
+    },
+
+    series: [{
+        name: 'Items',
+        colorByPoint: true,
+        size: 250,
+        innerSize: 120,
+        data: [{% for d in sales_by_category %}{ name:'{% if d.product_category %}{{d.product_category }}{% else %}None{% endif %}', p:{% if d.percentage %}{{d.percentage}}{% else %}0{% endif %} , y:{% if d.percentage %}{{d.percentage}}{% else %}0{% endif %} ,yy:{% if d.total_cost__sum %}{{d.total_cost__sum}}{% else %}0{% endif %}, color:'{{d.color}}', drilldown:'{% if d.product_category %}{{d.product_category }}{% else %}None{% endif %}' }, {% endfor %}]
+    }],
+    drilldown: {
+        series: [{
+            name: 'Microsoft Internet Explorer',
+            id: 'Microsoft Internet Explorer',
+            data: [
+                [
+                    'v11.0',
+                    24.13
+                ],
+                [
+                    'v8.0',
+                    17.2
+                ]
+            ]
+        }, {
+            name: 'Chrome',
+            id: 'Chrome',
+            data: [
+                [
+                    'v40.0',
+                    5
+                ],
+                [
+                    'v41.0',
+                    4.32
+                ]
+            ]
+        }, {
+            name: 'Firefox',
+            id: 'Firefox',
+            data: [
+                [
+                    'v35',
+                    2.76
+                ],
+                [
+                    'v36',
+                    2.32
+                ]
+            ]
+        }, {
+            name: 'Safari',
+            id: 'Safari',
+            data: [
+                [
+                    'v7.0',
+                    0.26
+                ],
+                [
+                    'v6.2',
+                    0.17
+                ]
+            ]
+        }, {
+            name: 'Opera',
+            id: 'Opera',
+            data: [
+                [
+                    'v12.x',
+                    0.34
+                ]
+            ]
+        }]
+    }
+});
+</script>
+
+{% endblock %}

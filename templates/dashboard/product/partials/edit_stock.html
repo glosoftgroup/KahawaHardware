@@ -1,0 +1,162 @@
+{% load materializecss %}
+{% load prices_i18n %}
+{% load static %}
+<script type="text/javascript" src="{% static 'backend/js/product/vue/edit_stock.js' %}"></script>
+<style type="text/css">
+.hvr-pulsew {
+    -webkit-animation-name: hvr-pulse;
+    animation-name: hvr-pulse;
+    -webkit-animation-duration: 1s;
+    animation-duration: 1s;
+    -webkit-animation-timing-function: linear;
+    animation-timing-function: linear;
+    -webkit-animation-iteration-count: infinite;
+    animation-iteration-count: infinite;}
+
+</style>
+
+<div id="edit-area" class="card-3 mb-10">
+<!--form-->
+<div class="add-new-stock-form mt-10" id="stock-edit-app">
+    <div class="sidebar-category bg-primary">
+        <div class="category-title text-center text-semibold">
+            <span id="selected-number">Edit Stock</span>
+        </div>
+    </div>
+
+    <div class="col-md-12 bg-white ">
+     <div class="tab-pane fade has-padding active in">
+        <div class="panelpanel-flat">
+            <div class="panel-body">
+                <div class="row">
+                    <form id="edit-product-stock">
+                    <div class="col-md-6">
+                        <fieldset>
+
+                            <div class="form-group">
+                                <label>Invoice Number:<span class="text-danger">*</span></label>
+                                {{ form.invoice_number }}
+                                <span class="help-block"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Variant:<span class="text-danger">*</span></label>
+                                <div id="feditv">
+                                    {{ form.variant }}
+                                    <span class="help-block"></span>
+                                </div>
+                                <span class="help-block"></span>
+                            </div>
+                            <div class="form-group">
+                                <label>Payment option:<span class="text-danger">*</span></label>
+                                <div class="multi-select-full">
+                                {{ form.payment_options }}
+                                </div>
+                                <span class="help-block"></span>
+                            </div>
+                            <div class="hidden">
+                                 {{ form.location}}
+                                 <input type="hidden" id="status" name="status" value="payment-pending">
+                             </div>
+
+
+                        </fieldset>
+                    </div>
+
+                    <div class="col-md-6">
+                        <fieldset>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Quantity:</label>
+                                        <input id="id_quantity" v-on:keyup="getTotal()"  v-model="quantity" name="quantity" value="{{stock.quantity}}" required="required" class="form-control" type="number">
+                                        <span class="help-block"></span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Reorder Threshold:</label>
+                                        <input type="number" class="form-control" id="reorder-threshold" placeholder="Reorder Threshold" value="{{ form.low_stock_threshold.value|default_if_none:''}}" name="reorder-threshold">
+                                        <span class="help-block"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Unit cost price:</label>
+                                        <input id="id_cost_price" v-model="amount" v-on:keyup="getTotal()" name="cost_price" step="any" value="{{stock.cost_price.gross}}" class="form-control" type="number">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Total cost #:</label>
+                                        <input id="id_total_cost" name="total_cost" v-on:keyup="getAmount" v-model="total" step="any" value="{{stock.total_cost.gross}}" class="form-control" type="number">
+                                        <span class="help-block"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Amount paid:</label>
+                                        <input id="id_amount_paid" v-on:keyup="getBalance()" v-model="paid" name="amount_paid" step="any" value="{{stock.amount_paid.gross}}" class="form-control" type="number">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>Balance:</label>
+                                        <input id="balance_e" name="balance_e" v-model="balance" step="any" class="form-control" type="number">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Settle payment:</label>
+                                        <input id="settle_payment" v-on:keyup="settleBalance()" v-model="settle" name="settle_payment" step="any" class="form-control" type="number">
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                        </fieldset>
+                    </div>
+                    </form>
+                </div>
+
+                <div class="text-right">
+                    <button type="submit" onclick="return false;" data-refreshstockurl="{% url 'dashboard:product-update' pk=product.pk %}" data-contenturl="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=stock.pk %}" id='editStockBtn' class="btn btn-xs btn-primary hvr-pulsew">Edit</button>
+                </div>
+            </div>
+        </div>
+     </div>
+    </div>
+</div>
+    <!--/form-->
+
+
+</div>
+
+<script>
+
+    $('.select').selectpicker();
+     // Basic initialization
+    $('.multiselect').multiselect({
+        onChange: function() {
+            $.uniform.update();
+        }
+    });
+     // Default initialization
+    $(".styled, .multiselect-container input").uniform({
+        radioClass: 'choice'
+    });
+    $('#edit-product-stock').validate({});
+</script>
+<script type="text/javascript" src="{% static 'backend/js/edit_stock.js' %}"></script>

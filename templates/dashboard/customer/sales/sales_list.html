@@ -1,0 +1,421 @@
+
+{% extends "dashboard/base.html" %}
+{% load staticfiles i18n %}
+{% load i18n %}
+{% load prices_i18n %}
+
+{% block title %}
+  Sales List Report
+{% endblock %}
+{% block breadcrumbs %}
+<li class="active"><a href="{% url 'dashboard:customers' %}">Customer</a></li>
+<li class="active"><a href="{% url 'dashboard:customer-sales-detail' pk=customer.pk %}">{{customer.name|title}}</a></li>
+ {% endblock %}
+
+{% block menu_addCustomer_class %}active{% endblock %}
+ {% block custom_css %}
+   <style type="text/css">
+    label.error{
+      color: #FF5722;
+    }
+    .td{cursor:pointer}
+    .table{border:1px solid #ccc}
+  </style>
+ {% endblock %}
+
+{% block content %}
+<div class="row animated fadeIn">
+    <div class="col-md-12">
+      <div class="panel panel-flat">
+     
+        <div class="panel-body search-panel">
+            <div class="col-md-4">
+             <label>Search Sales (for date format: yyyy-mm-dd)</label>
+              <div class="form-group form-group-material has-feedback">
+                <input class="form-control search_user" placeholder="Search details" type="text">
+                <div class="form-control-feedback">
+                  <i class="icon-search4 text-size-base"></i>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2">
+              <label>display list size</label>
+              <div class="form-group">
+                 <select class="bootstrap-select list-sz" style="display: none;" data-width="100%" tabindex="-98">
+                    <option value="0" selected>No:</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                  </select>
+              </div>
+            </div>
+            <div class="col-md-2">
+              <label>pick a date</label>
+              <div class="form-group">
+                <div class="input-group">
+                  <input class="form-control daterange-single" type="text">
+                  <span class="input-group-addon"><i class="icon-calendar22"></i></span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-2">
+             <label>Export</label>
+              <div class="form-group">
+                 <select class="bootstrap-select export-sz" style="display: none;" data-width="100%" tabindex="-98">
+                    <option value="none" data-icon="fa fa-dot-circle-o">Option</option>
+                    <option value="pdf" data-icon="fa-file-pdf-o">export pdf</option>
+                  </select>
+              </div>
+            </div>
+      </div>
+   </div>
+   </div>
+
+<div class="col-md-12">
+   <div id="pagination-div">
+    <div class="panel panel-flat">
+        <div class="panel-heading">
+            <h5 class="panel-title text-center">{{customer.name|title}} Sales Details</h5>
+        </div>
+      <div class="panel-body">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="table-responsives">
+                <table class="table  datatable-header-footer table-hover">
+                  <caption style="margin-bottom: 10px;">
+                   </caption>
+                      <thead style="border-top:1px solid #ddd;">
+                        <tr class="bg-primary">
+                          <th>Transaction Date</th>
+                          <th>Receipt No</th>
+                          <th>Customer Name</th>
+                          <th>Cashier</th>
+                          <th>Till</th>
+                          <th>Quantity</th>
+                          <th>Total Sales</th>
+                        </tr>
+                      </thead>
+                      <tbody id="tb">
+                        {% if sales %}
+                        {% for sale in sales %}
+                          <tr class='clickable-row' id="{{sale.pk }}">
+                            <td class="td" data-href="{% url 'dashboard:customer-sales-items-detail' pk=sale.pk ck=customer.pk %}">{{sale.created|date:"d-m-Y H:i a"}}</td>
+                            <td class="td" data-href="{% url 'dashboard:customer-sales-items-detail' pk=sale.pk ck=customer.pk %}">{{sale.invoice_number }}</td>
+                              <td class="td" data-href="{% url 'dashboard:customer-sales-items-detail' pk=sale.pk ck=customer.pk %}">{% if sale.customer %}{{sale.customer}}{% else %} Customer {% endif %}</td>
+                            <td class="td" data-href="{% url 'dashboard:customer-sales-items-detail' pk=sale.pk ck=customer.pk %}">{% if sale.user.email %}{{sale.user.email}}{% else %}{{sale.user.name}}{% endif %}</td>
+                            <td class="td" data-href="{% url 'dashboard:customer-sales-items-detail' pk=sale.pk ck=customer.pk %}">{{sale.terminal}}</td>
+                            <td class="td" data-href="{% url 'dashboard:customer-sales-items-detail' pk=sale.pk ck=customer.pk %}">{{sale.quantity}}</td>
+                            <td class="td" data-href="{% url 'dashboard:customer-sales-items-detail' pk=sale.pk ck=customer.pk %}">{{sale.total_net}}</td>
+                          </tr>
+                        {% endfor %}
+                         {% else %}
+                         <tr><td colspan="7"><h2 class="text-center">No Sales Summary Available for {{customer.name}}</h2></td></tr>
+                        {% endif %}
+                        </tbody>
+
+                 </table>
+              </div>
+              {% if sales %}
+              <div class="my-paginate">
+                <div class="text-center bootpag-callback" style="padding:20px;">
+                  <ul class="pagination bootpag pagination-flat pagination-sm"></ul>
+                  <div class="pull-right pages-nav">Page 1</div>
+                </div>
+                <input type="hidden" id="page_size" val="">
+              </div>
+              {% endif %}
+             </div>
+            </div>
+          {% if sales %}
+            <div class="row">
+              <div class="col-md-10 col-md-offset-1">
+                 <p class="text-center" style="margin: 20px 0px;">
+                   Last Sales Sales: Kshs
+                    {% if total_sales_amount.total_net__sum %}
+                       {{total_sales_amount.total_net__sum}}
+                    {% else %}
+                       0.00<br />
+                    {% endif %}<br />
+                   Total Sales: Kshs {{total_sales_amount.total_net__sum}}<br />
+                   Total Tax: Kshs {{ total_tax_amount.total_tax__sum}}
+                 </p>
+                  <p class="text-center"> Thank you for partnering with us.<br />
+                  <span>Report pullled by User</span></p>
+                  <input type="hidden" class="setValue">
+                  <input type="hidden" class="setName">
+                  <!--<button class="btn btn-primary ck">Click</button> -->
+
+              </div>
+             </div>
+          {% endif %}
+            </div>
+<!--       <div class="panel-footer">
+      <button class="btn btn-primary disabled">checki this</button>
+      </div> -->
+    </div>
+   </div><!--pagination div-->
+  </div>
+
+
+</div>
+
+
+{% endblock%}
+{% block custom_js %}
+  <script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_multiselect.js' %}"></script>
+  <script type="text/javascript" src="{% static 'backend/js/pages/form_multiselect.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/forms/selects/bootstrap_select.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/pagination/jquery.bootpag.js' %}"></script>
+<script > var back_path = "{{request.path}}";</script>
+<script type="text/javascript" src="{% static 'backend/js/pdf/open-pdf.js' %}"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){
+
+    $(".td").click(function(){
+          window.location = $(this).data("href");
+      });
+
+
+    var pagination_totalsize;
+    var status;
+    //**@ get
+    $.ajax({ url: "{% url 'dashboard:sales_list' %}",type: 'GET',data: {initial:'initial'},
+        async:false,success: function(data){
+         pagination_totalsize = data;
+    }});
+
+     $('.bootpag-callback').bootpag({
+        total: parseInt({{pn}}),
+        maxVisible: 3,
+        leaps: true,
+        firstLastUse: true,
+        first: 'First',
+        last: 'Last',       
+        wrapClass: 'pagination',
+        activeClass: 'active',
+        disabledClass: 'disabled',
+        nextClass: 'next',
+        prevClass: 'prev',
+        lastClass: 'last',
+        firstClass: 'first',
+        }).on("page", function(event, num){
+            $(".pages-nav").html("Page " + num +" of "+{{pn}});
+            $.get("{% url 'dashboard:customer_sales_paginate' %}",{page:parseInt(num), cpk:'{{customer.pk}}'},function(data){
+               $('#tb').html(data);
+            });
+    }).children('.pagination').addClass('pagination-flat pagination-sm');
+
+    $('.daterange-single').daterangepicker({
+        singleDatePicker: true,
+        locale:{format: 'YYYY-MM-DD'},
+        showDropdowns:true,
+        autoUpdateInput:false,
+        maxDate: new Date()
+    },function(chosen_date) {
+        $('.daterange-single').val(chosen_date.format('YYYY-MM-DD'));
+        var group_id = $('.daterange-single').val();
+        var searchData = $('.search_user').val();
+        var listSizeVal = $('.list-sz').find(":selected").val();
+        var url_search = "{% url 'dashboard:customer_sales_search' %}";
+        var url_paginate = "{% url 'dashboard:customer_sales_paginate' %}";
+
+       if(searchData && listSizeVal && listSizeVal != '0'){
+            if(!group_id){
+               $.ajax({ url:url_search, type: 'GET',data: {page:1, q:searchData, size:listSizeVal, cpk:'{{customer.pk}}'},success: function(data){
+                      $('#pagination-div').html(data);
+               }});
+            }else{
+               $.ajax({ url:url_search, type: 'GET',data: {page:1, q:searchData, size:listSizeVal, gid:group_id, cpk:'{{customer.pk}}'},success: function(data){
+                          $('#pagination-div').html(data);
+                }});
+           }
+       }else if(searchData){
+            if(!group_id){
+               $.ajax({ url:url_search, type: 'GET',data: {page:1, q:searchData, cpk:'{{customer.pk}}'},success: function(data){
+                      $('#pagination-div').html(data);
+               }});
+            }else{
+               $.ajax({ url:url_search, type: 'GET',data: {page:1, q:searchData, size:10, gid:group_id, cpk:'{{customer.pk}}'},success: function(data){
+                          $('#pagination-div').html(data);
+                }});
+           }
+       }else if(listSizeVal && listSizeVal != '0'){
+           if(!group_id){
+               $.ajax({ url: url_paginate,type: 'GET',data: {page:1, size:listSizeVal, cpk:'{{customer.pk}}'}, async:false,success: function(data){
+                  $('#pagination-div').html(data);
+              }});
+           }else{
+                $.get(url_paginate,{page:1,gid:group_id, size:listSizeVal, cpk:'{{customer.pk}}'},function(data){
+                 $('#pagination-div').html(data);
+               });
+           }
+       }else{
+           if(!group_id){
+               $.ajax({ url: url_paginate,type: 'GET',data: {page:1, size:10, cpk:'{{customer.pk}}'}, async:false,success: function(data){
+                  $('#pagination-div').html(data);
+              }});
+           }else{
+                $.get(url_paginate,{page:1,gid:group_id, cpk:'{{customer.pk}}'},function(data){
+                 $('#pagination-div').html(data);
+               });
+           }
+       }
+    });
+
+   $('.export-sz').selectpicker({
+          iconBase: 'fa',
+          tickIcon: 'fa-dot-circle-o',
+          pdfIcon:'fa-file-pdf-o',
+          excelIcon:'fa-file-excel-o'
+    }).on('change', function(){
+
+        var ts = $(this).val();
+        if(ts == 'pdf'){
+            var searchData = $('.search_user').val();
+            var date = $('.daterange-single').val();
+            var url = "{% url 'dashboard:customers_sales_list_pdf' %}";
+
+            if (searchData && date ){
+                $.get(url, {q:searchData, gid:date, cpk:'{{customer.pk}}'}, function(data){
+                          openPdf(data);
+                });
+            }else if (searchData){
+                $.get(url, {q:searchData, cpk:'{{customer.pk}}'}, function(data){
+                          openPdf(data);
+                });
+            }else if (date){
+                $.get(url, {gid:date, cpk:'{{customer.pk}}'}, function(data){
+                          openPdf(data);
+                });
+            }else{
+                $.get(url, {cpk:'{{customer.pk}}'},function(data){
+                          openPdf(data);
+               });
+            }
+
+        }else{
+          $(this).val('')
+        }
+    });
+
+    $('.ck').click(function(){
+      var name = $('.setName').val();
+      var vl = $('.setValue').val();
+        if( !name || !vl || vl == 'none'){
+           alert('nothing');
+        }else{
+         alert(name +' and '+ vl);
+        }
+    });
+    //**@ display size select
+    $('.list-sz').selectpicker().on('change', function(){
+        <!--var ts = $(this).val();-->
+        <!--$.ajax({ url: "{% url 'dashboard:customer_sales_paginate' %}",type: 'GET',data: {page:1, size:ts, cpk:'{{customer.pk}}'}, async:false,success: function(data){-->
+              <!--$('#pagination-div').html(data);-->
+        <!--}});-->
+        var listSizeVal = $(this).val();
+        var searchData = $('.search_user').val();
+        var date = $('.daterange-single').val();
+        var url_search = "{% url 'dashboard:customer_sales_search' %}";
+        var url_paginate = "{% url 'dashboard:customer_sales_paginate' %}";
+
+        if(searchData && date){
+            if(listSizeVal != '0'){
+               $.ajax({ url:url_search, type: 'GET',data: {page:1, size:listSizeVal, q:searchData, gid:date, cpk:'{{customer.pk}}'},success: function(data){
+                          $('#pagination-div').html(data);
+                }});
+            }else{
+               $.ajax({ url:url_search, type: 'GET',data: {page:1, size:10, q:searchData, gid:date, cpk:'{{customer.pk}}'},success: function(data){
+                          $('#pagination-div').html(data);
+                }});
+             }
+        }else if(searchData){
+            if(listSizeVal != '0'){
+               $.ajax({ url:url_search, type: 'GET',data: {page:1, size:listSizeVal, q:searchData, cpk:'{{customer.pk}}'},success: function(data){
+                          $('#pagination-div').html(data);
+                }});
+            }else{
+               $.ajax({ url:url_search, type: 'GET',data: {page:1, size:10, q:searchData, cpk:'{{customer.pk}}'},success: function(data){
+                          $('#pagination-div').html(data);
+                }});
+             }
+        }else if(date){
+            if(listSizeVal != '0'){
+               $.ajax({ url:url_paginate, type: 'GET',data: {page:1, size:listSizeVal, gid:date, cpk:'{{customer.pk}}'},success: function(data){
+                          $('#pagination-div').html(data);
+                }});
+            }else{
+               $.ajax({ url:url_paginate, type: 'GET',data: {page:1, size:10, gid:date, cpk:'{{customer.pk}}'},success: function(data){
+                          $('#pagination-div').html(data);
+                }});
+             }
+        }else{
+           if(listSizeVal != '0'){
+               $.ajax({ url: url_paginate,type: 'GET',data: {page:1, size:listSizeVal, cpk:'{{customer.pk}}'}, async:false,success: function(data){
+                  $('#pagination-div').html(data);
+              }});
+           }else{
+                $.ajax({ url: url_paginate,type: 'GET',data: {page:1, size:10, cpk:'{{customer.pk}}'}, async:false,success: function(data){
+                      $('#pagination-div').html(data);
+                }});
+           }
+       }
+
+
+     });
+
+
+
+    var delay = (function(){
+    var timer = 0;
+    return function(callback, ms){
+        clearTimeout (timer);
+        timer = setTimeout(callback, ms);
+      };
+    })();
+
+    <!--$('.search_user').keyup(function() {-->
+      <!--var search_text = $(this).val();-->
+      <!--delay(function(){-->
+         <!--var url = "{% url 'dashboard:customer_sales_search' %}";-->
+         <!--$.ajax({ url:url, type: 'GET',data: {page:1, q:search_text, cpk:'{{customer.pk}}'},success: function(data){-->
+                <!--$('#pagination-div').html(data);-->
+         <!--}});-->
+      <!--}, 500 );-->
+    <!--});-->
+
+    $('.search_user').keyup(function() {
+        var search_text = $(this).val();
+        var date = $('.daterange-single').val();
+        var listSizeVal = $('.list-sz').find(":selected").val();
+        var url = "{% url 'dashboard:customer_sales_search' %}";
+        var scategory = $('.sales-category').find(":selected").val();
+
+        delay(function(){
+            if(listSizeVal && listSizeVal != '0' && date){
+                $.ajax({ url:url, type: 'GET',data: {page:1, q:search_text, size:listSizeVal, gid:date, cpk:'{{customer.pk}}'},success: function(data){
+                          $('#pagination-div').html(data);
+                }});
+            }else if(listSizeVal && listSizeVal != '0'){
+                $.ajax({ url:url, type: 'GET',data: {page:1, q:search_text, size:listSizeVal, cpk:'{{customer.pk}}'},success: function(data){
+                          $('#pagination-div').html(data);
+                }});
+            }else if(date){
+                $.ajax({ url:url, type: 'GET',data: {page:1, q:search_text, size:10, gid:date, cpk:'{{customer.pk}}'},success: function(data){
+                          $('#pagination-div').html(data);
+                }});
+            }else{
+               $.ajax({ url:url, type: 'GET',data: {page:1, q:search_text, cpk:'{{customer.pk}}'},success: function(data){
+                        $('#pagination-div').html(data);
+               }});
+            }
+        }, 500 );
+
+      });
+
+
+});
+
+</script>
+{% endblock %}

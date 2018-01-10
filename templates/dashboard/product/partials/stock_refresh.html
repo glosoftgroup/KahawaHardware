@@ -1,0 +1,86 @@
+
+{% if stock_items %}
+{% load i18n %}
+{% load materializecss %}
+{% load staticfiles %}
+{% load prices_i18n %}
+{% load attributes %}
+{% for item in stock_items %}
+<tr data-action-go="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}" title="{% trans "Edit variant" context "Stock table action" %}">
+  <td>{{ item.variant.display_product }}</td>
+  <td>
+    {{ item.variant.sku }}                    
+  </td>
+  <!-- cost price -->
+  <td>
+    {% if item.cost_price %}
+     {% gross item.cost_price %}
+    {% endif %}   
+  </td>
+  <!-- sales price -->
+  <td> 
+  {% gross item.variant.get_price_per_item html=True %}
+  </td> 
+  
+  
+  <td class="right-align">
+    {{ item.quantity }}
+  </td>
+  <td>
+      {{item.low_stock_threshold}}
+    </td>
+  <td class="right-align">
+    {{ item.quantity_allocated }}
+  </td>
+  <td>
+                  <div class="btn-group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        action <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu edit-dropdown">   
+                        <li><a onclick="return false;" data-href="{% url 'dashboard:product-stock-update' product_pk=product.pk stock_pk=item.pk %}" class="edit-stock-Btn"><i class="icon-pencil7"></i> EDIT</a></li>
+                       
+                        <li>
+                          <a data-ta="#modal_delete_instance" data-title="Delete {{item.name}}?" data-href="{% url 'dashboard:single-stock-delete' product_pk=product.pk stock_pk=item.pk %}" data-tabname='?tab=stock'
+                         data-successurl="{% url 'dashboard:product-update' pk=product.pk  %}" data-name="{{ item.name }}" data-id="{{ item.pk }}"
+                       class="modal-trigger-delete"><i class="icon-trash" href="#modal_delete_instance" data-toggle="modal"></i> DELETE
+                       </a>
+                        </li>
+                       
+                        </ul>
+                    </div>
+                    
+                  </td>
+</tr>
+{% endfor %}
+<script type="text/javascript" src="{% static 'backend/js/deleteModal.js' %}"></script>
+<script type="text/javascript">
+  /* edit stock script */
+$(function(){
+  var editStockRefreshDiv = $('#div-edit-stock');
+  var editSelectOption = $('.edit-stock-Btn');  
+  var url = '#';  
+
+  editSelectOption.on('click',function(){
+    editStockRefreshDiv.html('Processing form ...');
+    var pk = $(this).data('pk');
+    url = $(this).data('href');
+    dynamicData = {};
+    dynamicData['template'] = 'edit_stock';    
+    
+    $('html, body').animate({
+     scrollTop: $('#stock-tab').offset().top
+    }, 1000);
+    addProductDetails(dynamicData,url,'get')
+    .done(function(data){      
+      editStockRefreshDiv.html(data);
+    })
+    .fail(function(){
+      alertUser('failed to get edit form');
+    });    
+  
+  });  
+
+});
+</script>
+{% endif %}

@@ -1,0 +1,55 @@
+{% load product_first_image from product_images %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load static %}
+{% load default_user_image %}
+
+{% if users %}
+  {% for user in users%}
+  <tr class='clickable-row' id="{{user.pk }}">
+    <td class="td" data-href="{% url 'dashboard:customer-detail' pk=user.pk %}">{{ forloop.counter }}</td>
+   
+    <td class="td" data-href="{% url 'dashboard:customer-detail' pk=user.pk %}">{{user.name}}</td>
+    <td class="td" data-href="{% url 'dashboard:customer-detail' pk=user.pk %}">{{user.mobile}}</td>
+
+    <td class="td" data-href="{% url 'dashboard:customer-detail' pk=user.pk %}">{{user.email}}
+    </td>
+    <td>{{ user.get_sales }}</td>
+    <!-- creditabale\ -->
+      <td>
+      <input class='switch-size' name='switch-size' id="switch-size" type="checkbox" data-pk="{{user.pk}}" data-size="mini" {{user.is_creditable_check_box}} >
+      </td>
+    <!-- loyalty points -->
+    <td class="td" data-href="{% url 'dashboard:customer-detail' pk=user.pk %}">
+    {{ user.get_loyalty_points }}
+    </td>
+    <td>
+      {{user.get_total_discount}}
+    </td>
+    <!-- actions -->
+    <td class="text-center">
+        <div class="btn-group">
+          <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            action <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu edit-dropdown">
+         {% if perms.userprofile.change_customer %}
+              <li><a href="{% url 'dashboard:customer-edit' pk=user.pk %}"><i class="icon-pencil7"></i> EDIT</a></li>
+         {% endif %}
+         {% if perms.userprofile.delete_customer %}
+              <li>
+              <a data-ta="#modal_instance" data-title="Delete Customer {{ user.name }} ?" data-href="{% url 'dashboard:customer-delete' pk=user.pk %}" data-name="{{ user.name }}" data-id="{{ user.pk }}"
+             class="modal-trigger"><i class="icon-trash" href="#modal_instance" data-toggle="modal"></i> DELETE
+             </a>
+            </li>
+         {% endif %}
+          </ul>
+    </div>
+
+    </td>
+  </tr>
+  {% endfor %}
+ {% else %}
+  <tr><td colspan="8"><h2 class="text-center">No Customers available</h2></td></tr>
+ {% endif %}
+ <script type="text/javascript" src="{% static 'backend/js/customer/customer-listing.js' %}"></script>

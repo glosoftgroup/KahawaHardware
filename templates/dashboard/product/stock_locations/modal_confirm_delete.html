@@ -1,0 +1,34 @@
+{% load i18n %}
+
+<form action="{% url 'dashboard:product-stock-location-delete' location.pk %}" method="post" novalidate>
+  {% csrf_token %}
+  <div class="modal-body">
+    <h5>
+      {% trans "Are you sure?" context "Dashboard confirmation modal" %}
+    </h5>
+    <div class="row">
+      <div class="col l12">
+        {% blocktrans trimmed context "Modal delete stock location text" %}
+          You are about to delete a stock location <strong>{{ location }}</strong>.
+        {% endblocktrans %}
+      </div>
+    </div>
+    {% if stock_count %}
+      <p class="text-semibold">
+      {% blocktrans trimmed count counter=stock_count context "Modal delete stock location text" %}
+        There is one stock associated with this stock location that will be deleted.
+        {% plural %}
+        There are {{ counter }} stocks associated with this stock location that will be deleted.
+        </p>
+      {% endblocktrans %}
+    {% endif %}
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-">
+      {% trans "Delete" context "Dashboard delete action" %}
+    </button>
+    <a href="#!" data-dismiss="modal" class="btn modal-action modal-close btn-flat">
+      {% trans "Cancel" context "Dashboard cancel action" %}
+    </a>
+  </div>
+</form>

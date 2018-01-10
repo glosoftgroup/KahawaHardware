@@ -1,0 +1,30 @@
+{% if attributes %} 
+{% load i18n %}
+
+{% for pk, name, values in attributes %}
+      <tr>
+        <td>{{ pk }}</td>
+        <!-- names -->
+        <td>{{ name }}</td>
+        <!-- values -->
+        <td>
+          {% for value in values %}
+              {{ value }}
+              {% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </td>
+        <!-- action -->
+        <td>
+          <a href="{% url 'dashboard:product-attribute-update' pk=pk %}" class="btn bg-blue">
+          <i class="icon-pencil"></i>
+          </a>
+        </td>
+      </tr>
+    {% endfor %}
+{% else %}
+<td colspan='4'>
+ <div class="alert-warning" style="padding: 12px"><h5 class="text-center">No result matches your search <i class="icon-heart-broken2"></i></h5></div>
+ </td>
+{% endif %}
+{% load static %}
+ <script type="text/javascript" src="{% static 'backend/js/backend.js' %}"></script>

@@ -1,0 +1,174 @@
+{% extends 'dashboard/base.html' %}
+{% load i18n %}
+{% load materializecss %}
+{% load static %}
+{% block title %}
+  {% if site.pk %}
+    {{ site.name }}
+  {% else %}
+    {% trans "Add new system settings" context "System settings page title" %}
+  {% endif %}
+   - {% trans "System settings" context "Dashboard sytem settings" %} - {{ block.super }}
+{% endblock %}
+
+{% block body_class %}body-settings{% endblock %}
+
+{% block menu_settings_class %}active{% endblock %}
+
+{% block breadcrumbs %}
+  <li class="active">
+        <a href="{% url 'dashboard:site-index' %}">
+             {% trans "System settings" context "Dashboard system settings" %}
+        </a>
+    </li>
+{% endblock %}
+
+{% block custom_css %}
+<style type="text/css">
+  .error {
+        color: #ff5722;
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+ <div class="panel panel-flat">  
+    <div class="panel-body">
+                  <div class="tabbable">
+                    <ul class="nav nav-tabs nav-tabs-highlight"  style="margin-bottom:0px;">
+                      <li class="active"><a href="#basic" data-toggle="tab">Basic Settings</a></li>
+                      <li><a href="#sms" data-toggle="tab" disabled>Communications</a></li>
+                        {% if perms.sales.import_database or perms.sales.export_database %}
+                            <li><a href="#db" data-toggle="tab">Databases</a></li>
+                        {% endif %}
+                    </ul>
+
+                    <div class="tab-content" style="margin-bottom:0px;">
+                      <div class="tab-pane fade in active" id="basic">
+                       <!--  basic settings -->
+                        {% include "dashboard/sites/_basic_config.html" with form=form %}
+                        <!-- ./end bsettings -->
+                      </div>
+
+                      <div class="tab-pane fade" id="sms">
+                       <!--  products -->
+                       {% include "dashboard/sites/_sms_config.html" with form=form %}
+                        <!-- ./products -->
+                      </div>
+
+                      <div class="tab-pane fade" id="db">
+                       <!--  products -->
+                       {% include "dashboard/sites/_db.html" with form=form %}
+                        <!-- ./products -->
+                      </div>
+
+                      <div class="tab-pane fade" id="sales">
+                        sales
+                        ./sales
+                      </div>                      
+                    </div>
+                  </div>
+                </div>
+    
+    <div class="col m12 l3 help-box"></div>
+  </div>
+<!-- page usrls -->
+<input type="hidden" class="pageUrls" data-updateurl="{% url 'dashboard:update-settings' site_id=1 %}" name="">
+<input type="hidden" class="redirectUrls" data-redirecturl="{% url 'dashboard:site-index' %}" name="">
+{% endblock %}
+
+{% block custom_js %}
+<script type="text/javascript">
+$( document ).ready(function() {
+  $( "label" ).addClass( "text-bold" );
+});
+</script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/forms/styling/uniform.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/pickers/pickadate/picker.time.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/pages/form_inputs.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/plugins/pickers/anytime.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/pages/picker_date.js' %}"></script>
+<script type="text/javascript" src="{% static 'backend/js/site-settings.js' %}"></script>
+<script type="text/javascript">
+  // Editable input
+   
+    $('.octime').pickatime({
+        editable: true,
+        format:'HH:i A',
+        formatSubmit:'HH:i A'
+    });
+
+    $(document).ready(function(){
+        $('.import_btn').on('click', function(e){
+            e.preventDefault();
+            var l = Ladda.create(this);
+            l.start();
+            var f = document.getElementById('database-form');
+            var formData = new FormData(f);
+
+            var file = $('.db')[0].files[0];
+            var filename = $('.db').val();
+
+            if(file){
+                formData.append("db", file);
+
+                var fileExtension = ['json'];
+                if ($.inArray(filename.split('.').pop().toLowerCase(), fileExtension) == -1) {
+                  l.stop();
+                  alertNotificatio("Only formats are allowed : "+fileExtension.join(', '), 'Note!', 'info');
+                  return false
+                }
+                
+                var extension = $('.db').val().replace(/^.*\./, '');
+                $.ajax({
+                    url: "{% url 'dashboard:import_db' %}",
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    method: 'POST',
+                    type: 'POST',
+                    success: function(data){
+                        l.stop();
+                        data == 'success' ? alertNotificatio(data, 'Success!', 'success') : alertNotificatio('Error Backing Up', 'Error!', 'danger');
+                        $('.db').val('');
+                        $('.filename').html(' ');
+                    },error: function(){
+                        l.stop();
+                        alertNotificatio('Error Backing Up', 'Error!', 'danger');
+                        $('.db').val('');
+                        $('.filename').html(' ');
+                    }
+                });
+              }else{
+                l.stop();
+                alertNotificatio('Please Choose a File', 'Error!', 'danger');
+              }
+              return false;
+        });
+
+        $('.export_btn').on('click', function(e){
+            e.preventDefault();
+            var l = Ladda.create(this);
+            l.start();
+            $.get("{% url 'dashboard:export_db' %}", function(data){
+                l.stop();
+                alertNotificatio(data, 'Success!', 'success')
+            }).fail(function(response) {
+                l.stop();
+                alertNotificatio('Error Backing Up', 'Error!', 'danger')
+            });
+            return false;
+        });
+
+        function alertNotificatio(message, header, theme){
+            $.jGrowl(message, {
+                header: header,
+                theme: 'bg-'+theme
+            });
+        }
+});
+
+</script>
+{% endblock %}

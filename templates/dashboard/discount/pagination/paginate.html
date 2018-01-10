@@ -1,0 +1,38 @@
+{% load product_first_image from product_images %}
+{% load i18n %}
+{% load prices_i18n %}
+{% load static %}
+
+{% if sales %}
+  {% for sale in sales %}
+    <tr class="clickable-row" data-href="{% url 'dashboard:sale-update' pk=sale.pk %}">
+      <td class='td'  data-href="{% url 'dashboard:sale-update' pk=sale.pk %}">
+        {{ sale }}
+      </td>
+      <td class='td' data-href="{% url 'dashboard:sale-update' pk=sale.pk %}">
+        {{ sale.value }}{{ sale.get_type_display }}
+      </td>
+      <!-- actions -->
+      <td >
+        <div class='btn-group'>
+          <button class='btn dropdown-toggle' data-toggle='dropdown'>Action <i class='glyphicon glyphicon-caret-down'></i></button>
+          <ul class='dropdown-menu pull-right'>
+             <li><a href="{% url 'dashboard:discount-detail' pk=sale.pk %}"><i class='glyphicon glyphicon-eye-open'></i> DETAIL</a></li>
+            <li><a  href="{% url 'dashboard:sale-update' pk=sale.pk %}"><i class='glyphicon glyphicon-edit'></i> EDIT</a></li>
+            
+            <li><a onclick="return false;" class="delete-discount" data-title="{{sale.name}}" data-href="{% url 'dashboard:sale-delete' pk=sale.pk %}" ><i class='glyphicon glyphicon-trash'></i> DELETE</a></li>
+          </ul>
+        </div>                     
+      </td>
+    </tr>
+  {% endfor %}
+<script type="text/javascript" src="{% static 'backend/js/discount/delete-discount.js' %}"></script>
+{% else %}
+  <tr>
+    <td>
+      <h2 class="text-center">
+        {% trans "No Discount available" context "Empty sales table message" %}
+      </h2>
+    </td>
+  </tr>
+  {% endif %}
